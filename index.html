@@ -91,7 +91,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .okbox{border:1px solid var(--ok);background:var(--ok-soft);border-radius:8px;padding:10px 14px;font-size:.88rem}
 .docsbox{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:14px}
 .docsbox summary{cursor:pointer;padding:12px 16px;font-weight:700;color:var(--pen)}
-.docsgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;padding:0 16px 16px}
+.docsgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:0 16px 16px}
 @media (max-width:560px){.docsgrid{grid-template-columns:minmax(0,1fr)}}
 .docs{display:flex;flex-direction:column;gap:6px}
 .checks{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px;font-size:.88rem}
@@ -362,7 +362,7 @@ if (typeof module!=="undefined") module.exports=DADOS_UNIMED;
 <script>
 const D = DADOS_UNIMED, M = MotorUnimed;
 const ECIVIL = ['Solteiro(a)','Casado(a)','União estável','Divorciado(a)','Separado(a)','Viúvo(a)'];
-const PARENT = ['Cônjuge','Companheiro(a)','Filho(a)','Enteado(a)','Menor sob guarda','Pai','Mãe'];
+const PARENT = ['Cônjuge','Companheiro(a) (união estável)','Filho(a)','Filho(a) adotivo(a)','Menor sob guarda'];
 const hoje = (()=>{const d=new Date();const z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`})();
 
 const vazioPessoa = () => ({nome:'',cpf:'',rg:'',cns:'',nascimento:'',sexo:'',estadoCivil:'',nomeMae:'',nacionalidade:'Brasileira',peso:'',altura:''});
@@ -445,7 +445,7 @@ function vDados(){
   </div></section>`;
 }
 function vDeps(){
-  let h=`<section class="card"><h2>Dependentes</h2><p class="lead" style="margin:0">Inclua até 4 dependentes. Se você vai entrar sozinho no plano, é só continuar.</p></section>`+docsResumo();
+  let h=`<section class="card"><h2>Dependentes</h2><p class="lead" style="margin:0">Inclua até 4 dependentes. Só são aceitos dependentes diretos: cônjuge ou companheiro(a), filhos, filhos adotivos e menores sob guarda (com termo de guarda). Enteados, pais e outros parentes não podem ser incluídos. Se você vai entrar sozinho no plano, é só continuar.</p></section>`+docsResumo();
   S.deps.forEach((d,i)=>{
     h+=`<section class="card"><div class="dephead"><span class="tag">Dependente ${i+1}</span><button type="button" class="btn ghost" data-rm="${i}">Remover</button></div>${pessoaCampos(d,'d'+i,false)}</section>`;
   });
@@ -518,9 +518,9 @@ const DOCS={
   titular:['RG','CPF','Cartão Nacional de Saúde (CNS)','Comprovante de endereço','Formulários preenchidos e assinados'],
   filho:['RG e CPF, ou certidão de nascimento','Cartão Nacional de Saúde (CNS)','Constar nos formulários do titular'],
   conjuge:['Certidão de casamento ou declaração de união estável','RG','CPF','Cartão Nacional de Saúde (CNS)'],
-  outro:['RG','CPF','Cartão Nacional de Saúde (CNS)','Confirme com o RH se há documento de comprovação do vínculo']
+  guarda:['Termo de guarda','RG e CPF, ou certidão de nascimento','Cartão Nacional de Saúde (CNS)','Constar nos formulários do titular']
 };
-function tipoDep(p){ if(p==='Cônjuge'||p==='Companheiro(a)') return 'conjuge'; if(p==='Filho(a)'||p==='Enteado(a)'||p==='Menor sob guarda') return 'filho'; return 'outro'; }
+function tipoDep(p){ if((p||'').startsWith('Cônjuge')||(p||'').startsWith('Companheiro')) return 'conjuge'; if(p==='Menor sob guarda') return 'guarda'; return 'filho'; }
 function docsLista(){
   const bloco=(quem,lista)=>`<div class="docs"><h3>${esc(quem)}</h3><ul class="checks">${lista.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
   let h=bloco(`Titular · ${M.nomeProprio(S.titular.nome)||'você'}`,DOCS.titular);
@@ -532,8 +532,9 @@ function docsResumo(){
   return `<details class="docsbox"><summary>Documentos que você vai precisar entregar</summary>
   <div class="docsgrid">
     <div><h3>Titular</h3><ul class="checks">${DOCS.titular.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
-    <div><h3>Filhos</h3><ul class="checks">${DOCS.filho.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
-    <div><h3>Cônjuge</h3><ul class="checks">${DOCS.conjuge.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+    <div><h3>Filhos e adotados</h3><ul class="checks">${DOCS.filho.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+    <div><h3>Menor sob guarda</h3><ul class="checks">${DOCS.guarda.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+    <div><h3>Cônjuge ou companheiro(a)</h3><ul class="checks">${DOCS.conjuge.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
   </div></details>`;
 }
 const VIEWS=[vDados,vDeps,vSaude,vGerar];
@@ -552,7 +553,7 @@ function validar(step){
     req(o,path,'nascimento',`${quem}: data de nascimento`);
     req(o,path,'sexo',`${quem}: sexo`);req(o,path,'estadoCivil',`${quem}: estado civil`);
     req(o,path,'nomeMae',`${quem}: nome da mãe`);req(o,path,'nacionalidade',`${quem}: nacionalidade`);
-    if(!tit) req(o,path,'parentesco',`${quem}: parentesco`);
+    if(!tit && !PARENT.includes(o.parentesco)){e.push(`${quem}: parentesco`);bad.push(`${path}.parentesco`)}
     const p=+o.peso; if(!(p>=1&&p<=300)){e.push(`${quem}: peso em kg`);bad.push(`${path}.peso`)}
     const a=parseFloat(String(o.altura).replace(',','.')); if(!(a>=0.3&&a<=2.3)){e.push(`${quem}: altura no formato 1,72`);bad.push(`${path}.altura`)}
   };
