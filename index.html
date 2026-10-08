@@ -389,6 +389,7 @@ if (typeof module!=="undefined") module.exports=DADOS_UNIMED;
     e: 'Aposentadoria (não continuará trabalhando na empresa)',
     f: 'Outros',
   };
+  const MENSALIDADE = 427.78; // valor fixo por pessoa
   const TEM_DIREITO = ['b', 'd', 'e']; // arts. 30 e 31 da Lei 9.656/98
 
   function nomeProprio(s) {
@@ -554,7 +555,7 @@ if (typeof module!=="undefined") module.exports=DADOS_UNIMED;
         const base = rows[i + 1] - 3.2;
         c.txt(0, nomeProprio(p.nome), i === 0 ? 96 : 84, base, 8.5, { maxW: i === 0 ? 223 : 235 });
         c.txt(0, fmtData(x.data), 376.2, base, 8.5, { center: true });
-        c.txt(0, fmtValor(p.valor), 494.2, base, 8.5, { center: true, maxW: 120 });
+        c.txt(0, fmtValor(MENSALIDADE), 494.2, base, 8.5, { center: true, maxW: 120 });
       });
       out.extincao = await c.doc.save();
     }
@@ -937,7 +938,6 @@ function vxTitular() {
     ${campo(t, 'xt', 'nome', 'Nome completo, sem abreviar', { cls: 's6' })}
     ${campo(t, 'xt', 'cpf', 'CPF', { cls: 's2', im: 'numeric', mask: 'cpf', ph: '000.000.000-00' })}
     ${campo(t, 'xt', 'codigo', 'Código do beneficiário', { cls: 's2', im: 'numeric', mask: 'cart', ph: '0090.2195.000002-00-0', hint: 'Número da carteirinha Unimed (17 números)' })}
-    ${campo(t, 'xt', 'valor', 'Valor da mensalidade (R$)', { cls: 's2', im: 'decimal', mask: 'valor', ph: '0,00' })}
     ${campo(X, 'x', 'dataDemissao', 'Data da demissão', { cls: 's3', type: 'date' })}
   </div></section>`;
   h += `<section class="card"><h2>Motivo da exclusão <span class="req">*</span></h2>
@@ -964,7 +964,6 @@ function vxDeps() {
       ${campo(d, 'xd' + i, 'cpf', 'CPF', { cls: 's2', im: 'numeric', mask: 'cpf', req: false, ph: '000.000.000-00' })}
       ${campo(d, 'xd' + i, 'codigo', 'Código do beneficiário', { cls: 's2', im: 'numeric', mask: 'cart', ph: '0090.2195.000003-00-6', hint: 'Carteirinha (17 números)' })}
       ${campo(d, 'xd' + i, 'parentesco', 'Parentesco', { cls: 's2', opts: PARENT })}
-      ${campo(d, 'xd' + i, 'valor', 'Valor da mensalidade (R$)', { cls: 's2', im: 'decimal', mask: 'valor', ph: '0,00' })}
     </div></section>`;
   });
   if (X.deps.length < 4) h += `<button type="button" class="btn" id="xadddep">+ Adicionar dependente</button>`;
@@ -992,6 +991,7 @@ function vxGerar() {
     <dt>Motivo</dt><dd>${esc(MX.MOTIVOS[X.motivo] || '')}</dd>
     <dt>Data da demissão</dt><dd class="num">${M.fmtData(X.dataDemissao)}</dd>
     <dt>Data da exclusão</dt><dd class="num">${M.fmtData(X.data)}</dd>
+    <dt>Mensalidade por pessoa</dt><dd class="num">R$ 427,78</dd>
     <dt>Dependentes excluídos</dt><dd class="num">${X.deps.length}</dd>
     <dt>Data dos formulários</dt><dd class="num">${M.fmtData(X.data)}</dd>
   </dl></section>
@@ -1030,7 +1030,6 @@ function validarX(step) {
     req(t, 'xt', 'nome', 'Nome do ex-empregado');
     if (!cpfOk(t.cpf)) { e.push('CPF do ex-empregado inválido'); bad.push('xt.cpf'); }
     if (String(t.codigo || '').replace(/\D/g, '').length !== 17) { e.push('Código do beneficiário do titular: 17 números, como 0090.2195.000002-00-0'); bad.push('xt.codigo'); }
-    if (!valorOk(t.valor)) { e.push('Valor da mensalidade do titular'); bad.push('xt.valor'); }
     req(X, 'x', 'dataDemissao', 'Data da demissão');
     if (!X.motivo) { e.push('Motivo da exclusão'); bad.push('r-motivo'); }
     if (X.motivo === 'f') req(X, 'x', 'motivoOutro', 'Descreva o motivo');
@@ -1047,7 +1046,6 @@ function validarX(step) {
     if (d.cpf && !cpfOk(d.cpf)) { e.push(`${q}: CPF inválido`); bad.push(`xd${i}.cpf`); }
     if (String(d.codigo || '').replace(/\D/g, '').length !== 17) { e.push(`${q}: código do beneficiário com 17 números`); bad.push(`xd${i}.codigo`); }
     if (!PARENT.includes(d.parentesco)) { e.push(`${q}: parentesco`); bad.push(`xd${i}.parentesco`); }
-    if (!valorOk(d.valor)) { e.push(`${q}: valor da mensalidade`); bad.push(`xd${i}.valor`); }
   });
   return { e, bad };
 }
