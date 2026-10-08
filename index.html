@@ -609,6 +609,10 @@ function campo(obj,path,k,label,o={}){
 }
 function objDe(path){ if(path==='xt') return X.titular; if(path==='x') return X; if(path.startsWith('xd')) return X.deps[+path.slice(2)]; return path==='t'?S.titular:S.deps[+path.slice(1)]; }
 
+function fmtCart(d){return `${d.slice(0,4)}.${d.slice(4,8)}.${d.slice(8,14)}-${d.slice(14,16)}-${d.slice(16,17)}`}
+// aceita a carteirinha sem os zeros do início (15 ou 16 números) e completa
+function normCart(v){let d=String(v||'').replace(/\D/g,'');if(d.length===15||d.length===16)d=d.padStart(17,'0');return d.length===17?fmtCart(d):String(v||'')}
+document.addEventListener('focusout',e=>{const el=e.target;if(el.dataset&&el.dataset.mask==='cart'){const n=normCart(el.value);if(n!==el.value){el.value=n;el.dispatchEvent(new Event('input',{bubbles:true}))}}});
 const MASK={
   cpf:v=>{v=v.replace(/\D/g,'').slice(0,11);return v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})\.(\d{3})(\d)/,'$1.$2.$3').replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/,'$1.$2.$3-$4')},
   cep:v=>{v=v.replace(/\D/g,'').slice(0,8);return v.replace(/(\d{5})(\d)/,'$1-$2')},
@@ -618,7 +622,7 @@ const MASK={
   altura:v=>{v=v.replace(/[^\d,.]/g,'').replace('.',',');const d=v.replace(/\D/g,'');if(/^\d{3}$/.test(d)&&!v.includes(','))return d[0]+','+d.slice(1);return v.slice(0,4)},
   peso:v=>v.replace(/\D/g,'').slice(0,3),
   valor:v=>v.replace(/[^\d,.]/g,'').slice(0,12),
-  cart:v=>{const d=v.replace(/\D/g,'').slice(0,17);const p=[d.slice(0,4),d.slice(4,8),d.slice(8,14),d.slice(14,16),d.slice(16,17)];let o=p[0];if(d.length>4)o+='.'+p[1];if(d.length>8)o+='.'+p[2];if(d.length>14)o+='-'+p[3];if(d.length>16)o+='-'+p[4];return o}
+  cart:v=>{const d=v.replace(/\D/g,'').slice(0,17);return d.length===17?fmtCart(d):d}
 };
 
 function pessoaCampos(o,path,tit){
@@ -937,7 +941,7 @@ function vxTitular() {
   let h = `<section class="card"><h2>Ex-empregado (titular)</h2><div class="grid">
     ${campo(t, 'xt', 'nome', 'Nome completo, sem abreviar', { cls: 's6' })}
     ${campo(t, 'xt', 'cpf', 'CPF', { cls: 's2', im: 'numeric', mask: 'cpf', ph: '000.000.000-00' })}
-    ${campo(t, 'xt', 'codigo', 'Código do beneficiário', { cls: 's2', im: 'numeric', mask: 'cart', ph: '0090.2195.000002-00-0', hint: 'Número da carteirinha Unimed (17 números)' })}
+    ${campo(t, 'xt', 'codigo', 'Código do beneficiário', { cls: 's2', im: 'numeric', mask: 'cart', ph: '0090.2195.000002-00-0', hint: 'Número da carteirinha Unimed. Pode digitar sem os zeros do início.' })}
     ${campo(X, 'x', 'dataDemissao', 'Data da demissão', { cls: 's3', type: 'date' })}
   </div></section>`;
   h += `<section class="card"><h2>Motivo da exclusão <span class="req">*</span></h2>
@@ -1025,6 +1029,7 @@ function validarX(step) {
   const e = [], bad = [];
   const req = (o, path, k, nome) => { if (!String(o[k] ?? '').trim()) { e.push(nome); bad.push(`${path}.${k}`); } };
   const valorOk = v => parseFloat(String(v || '').replace(/\./g, '').replace(',', '.')) > 0;
+  X.titular.codigo = normCart(X.titular.codigo); X.deps.forEach(d => d.codigo = normCart(d.codigo));
   if (step === 0) {
     const t = X.titular;
     req(t, 'xt', 'nome', 'Nome do ex-empregado');
