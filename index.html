@@ -89,6 +89,14 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .steps-list{margin:0;padding-left:1.2rem;display:flex;flex-direction:column;gap:6px}
 .note{font-size:.82rem;color:var(--muted)}
 .okbox{border:1px solid var(--ok);background:var(--ok-soft);border-radius:8px;padding:10px 14px;font-size:.88rem}
+.docsbox{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:14px}
+.docsbox summary{cursor:pointer;padding:12px 16px;font-weight:700;color:var(--pen)}
+.docsgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;padding:0 16px 16px}
+@media (max-width:560px){.docsgrid{grid-template-columns:minmax(0,1fr)}}
+.docs{display:flex;flex-direction:column;gap:6px}
+.checks{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px;font-size:.88rem}
+.checks li{display:flex;gap:8px;align-items:flex-start}
+.checks li::before{content:"";flex:none;width:13px;height:13px;margin-top:4px;border:1.5px solid var(--pen);border-radius:3px}
 @media (prefers-reduced-motion:no-preference){.ans,.btn{transition:background .12s,border-color .12s}}
 </style>
 </head>
@@ -419,7 +427,7 @@ function pessoaCampos(o,path,tit){
 /* ---------- etapas ---------- */
 function vDados(){
   const t=S.titular;
-  return `<section class="card"><h2>Seus dados</h2>${pessoaCampos(t,'t',true)}</section>
+  return docsResumo()+`<section class="card"><h2>Seus dados</h2>${pessoaCampos(t,'t',true)}</section>
   <section class="card"><h2>Contato e endereço</h2><div class="grid">
   ${campo(t,'t','email','E-mail',{cls:'s3',type:'email',auto:'email',im:'email'})}
   ${campo(t,'t','telefone','Telefone com DDD',{cls:'s3',type:'tel',mask:'tel',im:'tel',auto:'tel',ph:'(12) 99999-9999'})}
@@ -437,7 +445,7 @@ function vDados(){
   </div></section>`;
 }
 function vDeps(){
-  let h=`<section class="card"><h2>Dependentes</h2><p class="lead" style="margin:0">Inclua até 4 dependentes. Se você vai entrar sozinho no plano, é só continuar.</p></section>`;
+  let h=`<section class="card"><h2>Dependentes</h2><p class="lead" style="margin:0">Inclua até 4 dependentes. Se você vai entrar sozinho no plano, é só continuar.</p></section>`+docsResumo();
   S.deps.forEach((d,i)=>{
     h+=`<section class="card"><div class="dephead"><span class="tag">Dependente ${i+1}</span><button type="button" class="btn ghost" data-rm="${i}">Remover</button></div>${pessoaCampos(d,'d'+i,false)}</section>`;
   });
@@ -498,10 +506,35 @@ function vGerar(){
     <li>Imprima todos os formulários.</li>
     <li>Na <b>Declaração de Saúde</b>: rubrique a pág. 1 e assine em todas as outras páginas, no campo do titular.</li>
     <li>Assine a <b>Declaração MPS/GLC</b> e a <b>Movimentação Cadastral</b> (campo "Beneficiário Titular").</li>
-    <li>Digitalize mantendo a ordem das páginas e entregue ao RH junto com os documentos pedidos.</li>
-  </ol>
+    <li>Digitalize mantendo a ordem das páginas e entregue ao RH junto com os documentos abaixo.</li>
+  </ol></section>
+  <section class="card"><h2>Documentos obrigatórios</h2>
+  <p class="note" style="margin:0">Sem estes documentos a Unimed não aceita a inclusão. Envie cópias legíveis.</p>
+  ${docsLista()}
   <button type="button" class="btn ghost" id="limpar">Apagar meus dados desta tela</button>
   </section>`;
+}
+const DOCS={
+  titular:['RG','CPF','Cartão Nacional de Saúde (CNS)','Comprovante de endereço','Formulários preenchidos e assinados'],
+  filho:['RG e CPF, ou certidão de nascimento','Cartão Nacional de Saúde (CNS)','Constar nos formulários do titular'],
+  conjuge:['Certidão de casamento ou declaração de união estável','RG','CPF','Cartão Nacional de Saúde (CNS)'],
+  outro:['RG','CPF','Cartão Nacional de Saúde (CNS)','Confirme com o RH se há documento de comprovação do vínculo']
+};
+function tipoDep(p){ if(p==='Cônjuge'||p==='Companheiro(a)') return 'conjuge'; if(p==='Filho(a)'||p==='Enteado(a)'||p==='Menor sob guarda') return 'filho'; return 'outro'; }
+function docsLista(){
+  const bloco=(quem,lista)=>`<div class="docs"><h3>${esc(quem)}</h3><ul class="checks">${lista.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
+  let h=bloco(`Titular · ${M.nomeProprio(S.titular.nome)||'você'}`,DOCS.titular);
+  S.deps.forEach((d,i)=>{const t=tipoDep(d.parentesco);
+    h+=bloco(`${d.parentesco||'Dependente '+(i+1)} · ${M.nomeProprio(d.nome)||'dependente '+(i+1)}`,DOCS[t]);});
+  return h;
+}
+function docsResumo(){
+  return `<details class="docsbox"><summary>Documentos que você vai precisar entregar</summary>
+  <div class="docsgrid">
+    <div><h3>Titular</h3><ul class="checks">${DOCS.titular.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+    <div><h3>Filhos</h3><ul class="checks">${DOCS.filho.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+    <div><h3>Cônjuge</h3><ul class="checks">${DOCS.conjuge.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+  </div></details>`;
 }
 const VIEWS=[vDados,vDeps,vSaude,vGerar];
 
