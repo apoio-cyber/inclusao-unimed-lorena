@@ -378,6 +378,7 @@ if (typeof module!=="undefined") module.exports=DADOS_UNIMED;
 </script>
 <script>// Motor de preenchimento dos formulários de EXCLUSÃO - Unimed Lorena / Cucinare
 (function (root) {
+  const MESES_AB = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
   const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
   const MINUSC = ['de', 'da', 'do', 'das', 'dos', 'e'];
   const MOTIVOS = {
@@ -418,7 +419,7 @@ if (typeof module!=="undefined") module.exports=DADOS_UNIMED;
       direito,
       solicitacao: true,
       comunicadoEmpresa: direito,
-      opcaoManutencao: direito && x.opcao === 'manter',
+      opcaoManutencao: x.opcao === 'manter',
       movimentacao: true,
       extincao: true,
     };
@@ -476,14 +477,14 @@ if (typeof module!=="undefined") module.exports=DADOS_UNIMED;
       if (x.contribuiu === true) c.par(0, 87.4, 123.0, 413.2, 424.2);
       if (x.contribuiu === false) c.par(0, 86.5, 122.0, 428.5, 439.5);
       if (x.contribuiu === true) {
-        const p = periodo(x.inicioContribuicao, x.dataExclusao);
+        const p = periodo(x.admissao, x.dataDemissao);
         if (p) { c.txt(0, String(p.anos), 86, 528.5, 11, { center: true }); c.txt(0, String(p.meses), 143.5, 528.5, 11, { center: true }); c.txt(0, String(p.dias), 211.3, 528.5, 11, { center: true }); }
       }
-      if (docs.direito && x.opcao === 'manter') c.par(0, 84.1, 119.6, 567.2, 578.2);
-      if (docs.direito && x.opcao === 'recusou') c.par(0, 83.4, 118.9, 582.5, 593.5);
+      if (x.opcao === 'manter') c.par(0, 84.1, 119.6, 567.2, 578.2);
+      if (x.opcao === 'recusou') c.par(0, 83.4, 118.9, 582.5, 593.5);
       c.txt(0, dp.d, 449.6, 646.5, 10.5, { center: true });
-      c.txt(0, dp.m, 487.2, 646.5, 10.5, { center: true });
-      c.txt(0, dp.a.slice(2), 524.8, 646.5, 10.5, { center: true });
+      c.txt(0, MESES_AB[+dp.m - 1], 487.2, 646.5, 10.5, { center: true });
+      c.txt(0, dp.a, 524.8, 646.5, 10.5, { center: true, maxW: 26 });
       c.img(0, carimbo, 240, 600, 80);
       out.solicitacao = await c.doc.save();
     }
@@ -519,7 +520,7 @@ if (typeof module!=="undefined") module.exports=DADOS_UNIMED;
       c.xis(0, 224.9, 146.1, 232.5, 153.7);              // TITULAR
       if (deps.length) c.xis(0, 314.2, 146.1, 321.8, 153.7); // DEPENDENTE
       const S = 9;
-      const obs = `Exclusão em ${fmtData(x.dataExclusao)}`;
+      const obs = `Exclusão em ${fmtData(x.data)}`;
       c.txt(0, nomeT, 57, 206.5, 10.5, { maxW: 510 });
       c.txt(0, fmtCPF(x.titular.cpf), 57, 312, S, { maxW: 165 });
       c.txt(0, x.titular.codigo, 57, 442, S, { maxW: 340 });
@@ -552,7 +553,7 @@ if (typeof module!=="undefined") module.exports=DADOS_UNIMED;
       pessoas.slice(0, 5).forEach((p, i) => {
         const base = rows[i + 1] - 3.2;
         c.txt(0, nomeProprio(p.nome), i === 0 ? 96 : 84, base, 8.5, { maxW: i === 0 ? 223 : 235 });
-        c.txt(0, fmtData(x.dataExclusao), 376.2, base, 8.5, { center: true });
+        c.txt(0, fmtData(x.data), 376.2, base, 8.5, { center: true });
         c.txt(0, fmtValor(p.valor), 494.2, base, 8.5, { center: true, maxW: 120 });
       });
       out.extincao = await c.doc.save();
@@ -576,7 +577,7 @@ let S = {step:0, data:hoje,
   titular:{...vazioPessoa(), email:'',telefone:'',endereco:'',numero:'',complemento:'',bairro:'',cidade:'',cep:'',admissao:'',profissao:''},
   deps:[], resp:{}, esp:{}, leu:false};
 try{const s=sessionStorage.getItem('ficha-unimed'); if(s) S={...S,...JSON.parse(s)}; }catch(e){}
-const vazioX=()=>({step:0, data:hoje, dataExclusao:'', titular:{nome:'',cpf:'',codigo:'',valor:''}, motivo:'', motivoOutro:'', contribuiu:'', inicioContribuicao:'', opcao:'', deps:[]});
+const vazioX=()=>({step:0, data:hoje, dataDemissao:'', admissao:'', titular:{nome:'',cpf:'',codigo:'',valor:''}, motivo:'', motivoOutro:'', contribuiu:'', opcao:'', deps:[]});
 let X=vazioX(), MODO='';
 try{const x=sessionStorage.getItem('ficha-unimed-x'); if(x) X={...X,...JSON.parse(x)}; MODO=sessionStorage.getItem('ficha-unimed-modo')||'';}catch(e){}
 S.data=hoje; X.data=hoje;
@@ -924,7 +925,7 @@ function radios(name, opts, atual) {
 }
 function xDireito() { return MX.TEM_DIREITO.includes(X.motivo) && X.contribuiu === 'sim'; }
 function xPeriodoTxt() {
-  const p = MX.periodo(X.inicioContribuicao, X.dataExclusao);
+  const p = MX.periodo(X.admissao, X.dataDemissao);
   if (!p) return '';
   const pl = (n, s, pl) => `${n} ${n === 1 ? s : pl}`;
   return `${pl(p.anos, 'ano', 'anos')}, ${pl(p.meses, 'mês', 'meses')} e ${pl(p.dias, 'dia', 'dias')}`;
@@ -936,7 +937,7 @@ function vxTitular() {
     ${campo(t, 'xt', 'cpf', 'CPF', { cls: 's2', im: 'numeric', mask: 'cpf', ph: '000.000.000-00' })}
     ${campo(t, 'xt', 'codigo', 'Código do beneficiário', { cls: 's2', hint: 'Número da carteirinha Unimed' })}
     ${campo(t, 'xt', 'valor', 'Valor da mensalidade (R$)', { cls: 's2', im: 'decimal', mask: 'valor', ph: '0,00' })}
-    ${campo(X, 'x', 'dataExclusao', 'Data da exclusão', { cls: 's3', type: 'date' })}
+    ${campo(X, 'x', 'dataDemissao', 'Data da demissão', { cls: 's3', type: 'date' })}
   </div></section>`;
   h += `<section class="card"><h2>Motivo da exclusão <span class="req">*</span></h2>
     ${radios('motivo', Object.entries(MX.MOTIVOS), X.motivo)}
@@ -945,15 +946,13 @@ function vxTitular() {
   h += `<section class="card"><h2>O funcionário contribuía para o plano? <span class="req">*</span></h2>
     <p class="note" style="margin:0">Contribuição é qualquer valor pago pelo funcionário para o plano dele, inclusive desconto em folha. Valores pagos só por dependentes ou coparticipação não contam.</p>
     ${radios('contribuiu', [['sim', 'Sim, contribuía'], ['nao', 'Não contribuía']], X.contribuiu)}
-    ${X.contribuiu === 'sim' ? `<div class="grid">${campo(X, 'x', 'inicioContribuicao', 'Início da contribuição', { cls: 's3', type: 'date', hint: 'Normalmente a data de entrada no plano' })}</div>
-      ${xPeriodoTxt() ? `<div class="calc">Período de contribuição até a exclusão: <b>${xPeriodoTxt()}</b></div>` : ''}` : ''}
+    ${X.contribuiu === 'sim' ? `<div class="grid">${campo(X, 'x', 'admissao', 'Data de admissão', { cls: 's3', type: 'date' })}</div>
+      ${xPeriodoTxt() ? `<div class="calc">Período de contribuição (admissão até demissão): <b>${xPeriodoTxt()}</b></div>` : ''}` : ''}
   </section>`;
-  if (xDireito()) {
-    h += `<section class="card"><h2>Manutenção do plano como inativo</h2>
-      <p class="note" style="margin:0">Pelos arts. 30 e 31 da Lei 9.656/98, este ex-empregado pode continuar no plano pagando a mensalidade integral. Ele tem até 30 dias para decidir.</p>
-      ${radios('opcao', [['manter', 'Optou por manter o plano'], ['recusou', 'Recusou manter o plano'], ['pendente', 'Ainda não respondeu (deixar em branco)']], X.opcao)}
+  h += `<section class="card"><h2>O ex-empregado optou por manter o plano? <span class="req">*</span></h2>
+      <p class="note" style="margin:0">${xDireito() ? 'Pelos arts. 30 e 31 da Lei 9.656/98, ele pode continuar no plano pagando a mensalidade integral. Tem até 30 dias para decidir.' : 'Pela Lei 9.656/98, o direito de manter o plano vale para demissão sem justa causa ou aposentadoria, quando o funcionário contribuía.'}</p>
+      ${radios('opcao', [['manter', 'Sim, optou por manter'], ['recusou', 'Não, recusou manter']], X.opcao)}
     </section>`;
-  }
   return h;
 }
 function vxDeps() {
@@ -980,7 +979,7 @@ const XDOCS = [
 function xDocsMotivo(k, docs) {
   if (docs[k]) return '';
   if (k === 'comunicadoEmpresa') return 'Só para demissão sem justa causa ou aposentadoria, quando o funcionário contribuía';
-  if (k === 'opcaoManutencao') return docs.direito ? 'Só quando o ex-empregado opta por manter o plano' : 'Não se aplica a este motivo';
+  if (k === 'opcaoManutencao') return 'Só quando o ex-empregado opta por manter o plano';
   return '';
 }
 function vxGerar() {
@@ -990,7 +989,8 @@ function vxGerar() {
   return `<section class="card"><h2>Conferência</h2><dl class="sum">
     <dt>Ex-empregado</dt><dd>${esc(MX.nomeProprio(X.titular.nome))}</dd>
     <dt>Motivo</dt><dd>${esc(MX.MOTIVOS[X.motivo] || '')}</dd>
-    <dt>Data da exclusão</dt><dd class="num">${M.fmtData(X.dataExclusao)}</dd>
+    <dt>Data da demissão</dt><dd class="num">${M.fmtData(X.dataDemissao)}</dd>
+    <dt>Data da exclusão</dt><dd class="num">${M.fmtData(X.data)}</dd>
     <dt>Dependentes excluídos</dt><dd class="num">${X.deps.length}</dd>
     <dt>Data dos formulários</dt><dd class="num">${M.fmtData(X.data)}</dd>
   </dl></section>
@@ -1030,15 +1030,15 @@ function validarX(step) {
     if (!cpfOk(t.cpf)) { e.push('CPF do ex-empregado inválido'); bad.push('xt.cpf'); }
     req(t, 'xt', 'codigo', 'Código do beneficiário do titular');
     if (!valorOk(t.valor)) { e.push('Valor da mensalidade do titular'); bad.push('xt.valor'); }
-    req(X, 'x', 'dataExclusao', 'Data da exclusão');
+    req(X, 'x', 'dataDemissao', 'Data da demissão');
     if (!X.motivo) { e.push('Motivo da exclusão'); bad.push('r-motivo'); }
     if (X.motivo === 'f') req(X, 'x', 'motivoOutro', 'Descreva o motivo');
     if (!X.contribuiu) { e.push('Informe se o funcionário contribuía'); bad.push('r-contribuiu'); }
     if (X.contribuiu === 'sim') {
-      req(X, 'x', 'inicioContribuicao', 'Início da contribuição');
-      if (X.inicioContribuicao && X.dataExclusao && !MX.periodo(X.inicioContribuicao, X.dataExclusao)) { e.push('O início da contribuição precisa ser antes da exclusão'); bad.push('x.inicioContribuicao'); }
+      req(X, 'x', 'admissao', 'Data de admissão');
+      if (X.admissao && X.dataDemissao && !MX.periodo(X.admissao, X.dataDemissao)) { e.push('A admissão precisa ser antes da demissão'); bad.push('x.admissao'); }
     }
-    if (xDireito() && !X.opcao) { e.push('Informe a opção do ex-empregado sobre manter o plano'); bad.push('r-opcao'); }
+    if (!X.opcao) { e.push('Informe se o ex-empregado optou por manter o plano'); bad.push('r-opcao'); }
   }
   if (step === 1) X.deps.forEach((d, i) => {
     const q = `Dependente ${i + 1}`;
@@ -1058,15 +1058,13 @@ document.addEventListener('change', e => {
   const r = e.target.dataset && e.target.dataset.xr;
   if (!r) return;
   X[r] = e.target.value; cacheX = null;
-  if (r === 'contribuiu' && X.contribuiu !== 'sim') X.inicioContribuicao = '';
-  if (!xDireito()) X.opcao = '';
   const y = window.scrollY; renderX(); window.scrollTo({ top: y });
 });
 document.addEventListener('input', e => {
   cacheX = null;
-  if (MODO === 'exclusao' && ['x.inicioContribuicao', 'x.dataExclusao'].includes(e.target.id) && X.step === 0 && X.contribuiu === 'sim') {
+  if (MODO === 'exclusao' && ['x.admissao', 'x.dataDemissao'].includes(e.target.id) && X.step === 0 && X.contribuiu === 'sim') {
     const c = document.querySelector('.calc'); const t = xPeriodoTxt();
-    if (c && t) c.innerHTML = `Período de contribuição até a exclusão: <b>${t}</b>`;
+    if (c && t) c.innerHTML = `Período de contribuição (admissão até demissão): <b>${t}</b>`;
     else if (!c && t) { const y = window.scrollY; renderX(); window.scrollTo({ top: y }); }
   }
 });
@@ -1084,7 +1082,7 @@ async function gerarX() {
     const [solicitacao, comunicadoEmpresa, opcaoManutencao, movimentacao, extincao, carimbo] = await Promise.all(nomes.map(get));
     arqsX = { solicitacao, comunicadoEmpresa, opcaoManutencao, movimentacao, extincao, carimbo };
   }
-  const dados = { ...X, contribuiu: X.contribuiu === 'sim' ? true : X.contribuiu === 'nao' ? false : null, opcao: X.opcao === 'pendente' ? '' : X.opcao, dependentes: X.deps };
+  const dados = { ...X, contribuiu: X.contribuiu === 'sim' ? true : X.contribuiu === 'nao' ? false : null, dependentes: X.deps };
   const r = await MX.gerar(dados, arqsX, PDFLib);
   const tudo = await PDFLib.PDFDocument.create();
   for (const [k] of XDOCS) { const b = r.arquivos[k]; if (!b) continue; const d = await PDFLib.PDFDocument.load(b); (await tudo.copyPages(d, d.getPageIndices())).forEach(p => tudo.addPage(p)); }
