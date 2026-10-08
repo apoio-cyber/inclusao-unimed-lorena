@@ -97,6 +97,28 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .checks{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px;font-size:.88rem}
 .checks li{display:flex;gap:8px;align-items:flex-start}
 .checks li::before{content:"";flex:none;width:13px;height:13px;margin-top:4px;border:1.5px solid var(--pen);border-radius:3px}
+.trocar{margin-left:8px;border:0;background:none;color:var(--pen);font:600 .72rem var(--body);text-transform:none;letter-spacing:0;text-decoration:underline;cursor:pointer;padding:0}
+.choose{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:560px){.choose{grid-template-columns:minmax(0,1fr)}}
+.opt{display:flex;flex-direction:column;gap:8px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 18px;cursor:pointer;color:var(--ink);font:inherit}
+.opt:hover{border-color:var(--pen)}
+.opt h2{font-size:1.35rem}
+.opt .who{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--pen)}
+.opt p{margin:0;color:var(--muted);font-size:.9rem}
+.radios{display:flex;flex-direction:column;gap:6px}
+.radio{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:9px 12px;background:var(--paper);cursor:pointer;font-size:.9rem}
+.radio input{width:auto;margin-top:3px;flex:none}
+.radio:has(input:checked){border-color:var(--pen);background:var(--pen-soft)}
+.radios.bad .radio{border-color:var(--sim)}
+.calc{font-size:.88rem;background:var(--pen-soft);border-radius:8px;padding:8px 12px}
+.doclist{display:flex;flex-direction:column;gap:8px}
+.docrow{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--paper)}
+.docrow.off{opacity:.6}
+.docrow .t{min-width:0;display:flex;flex-direction:column;gap:2px;font-size:.9rem}
+.docrow .t small{color:var(--muted);font-size:.78rem}
+.pill{font:700 .68rem var(--body);text-transform:uppercase;letter-spacing:.05em;border-radius:999px;padding:3px 8px;white-space:nowrap}
+.pill.on{background:var(--ok-soft);color:var(--ok)}
+.pill.no{background:var(--line);color:var(--muted)}
 @media (prefers-reduced-motion:no-preference){.ans,.btn{transition:background .12s,border-color .12s}}
 </style>
 </head>
@@ -105,23 +127,18 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 
 <div class="wrap">
   <header class="top">
-    <span class="eyebrow">Cucinare Pro Alimentação · Plano Unimed Lorena</span>
-    <h1>Ficha de inclusão no plano de saúde</h1>
-    <p class="lead">Preencha seus dados, os dos seus dependentes e a declaração de saúde. No final você baixa os formulários prontos para imprimir e assinar. Nada do que você digita fica salvo neste site.</p>
+    <span class="eyebrow">Cucinare Pro Alimentação · Plano Unimed Lorena <button type="button" class="trocar" id="trocar" hidden>Trocar inclusão / exclusão</button></span>
+    <h1 id="titulo">Formulários do plano de saúde</h1>
+    <p class="lead" id="lead">Escolha o que você precisa fazer. No final você baixa os formulários prontos para imprimir e assinar. Nada do que você digita fica salvo neste site.</p>
   </header>
 
-  <nav class="steps" id="steps" aria-label="Etapas">
-    <button type="button" data-s="0">1 · Seus dados</button>
-    <button type="button" data-s="1">2 · Dependentes</button>
-    <button type="button" data-s="2">3 · Saúde</button>
-    <button type="button" data-s="3">4 · Gerar</button>
-  </nav>
+  <nav class="steps" id="steps" aria-label="Etapas"></nav>
 
   <div id="errs" class="errs" hidden></div>
   <main id="view"></main>
 </div>
 
-<div class="navbar"><div class="in">
+<div class="navbar" id="navbar"><div class="in">
   <button type="button" class="btn ghost" id="voltar">Voltar</button>
   <span class="note" id="pos"></span>
   <button type="button" class="btn primary" id="avancar">Continuar</button>
@@ -359,6 +376,195 @@ if (typeof module!=="undefined") module.exports=DADOS_UNIMED;
   if (typeof module !== 'undefined') module.exports = API; else root.MotorUnimed = API;
 })(this);
 </script>
+<script>// Motor de preenchimento dos formulários de EXCLUSÃO - Unimed Lorena / Cucinare
+(function (root) {
+  const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  const MINUSC = ['de', 'da', 'do', 'das', 'dos', 'e'];
+  const MOTIVOS = {
+    a: 'Demissão por justa causa',
+    b: 'Demissão sem justa causa',
+    c: 'Demissão a pedido do funcionário',
+    d: 'Demissão sem justa causa de aposentado que continuou trabalhando na empresa',
+    e: 'Aposentadoria (não continuará trabalhando na empresa)',
+    f: 'Outros',
+  };
+  const TEM_DIREITO = ['b', 'd', 'e']; // arts. 30 e 31 da Lei 9.656/98
+
+  function nomeProprio(s) {
+    return (s || '').trim().replace(/\s+/g, ' ').toLowerCase().split(' ')
+      .map((w, i) => (i > 0 && MINUSC.includes(w)) ? w : w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
+  const dig = s => (s || '').replace(/\D/g, '');
+  function fmtCPF(s) { const d = dig(s); return d.length === 11 ? d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : (s || '').trim(); }
+  function partes(iso) { const [a, m, d] = (iso || '').split('-'); return { d, m, a }; }
+  function fmtData(iso) { const p = partes(iso); return p.d ? `${p.d}/${p.m}/${p.a}` : ''; }
+  function fmtValor(v) {
+    const n = typeof v === 'number' ? v : parseFloat(String(v || '').replace(/\./g, '').replace(',', '.'));
+    return isFinite(n) ? 'R$ ' + n.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '';
+  }
+  // período entre duas datas ISO em anos, meses e dias
+  function periodo(ini, fim) {
+    const a = partes(ini), b = partes(fim);
+    if (!a.d || !b.d) return null;
+    let y = +b.a - +a.a, m = +b.m - +a.m, d = +b.d - +a.d;
+    if (d < 0) { m--; d += new Date(+b.a, +b.m - 1, 0).getDate(); }
+    if (m < 0) { y--; m += 12; }
+    if (y < 0) return null;
+    return { anos: y, meses: m, dias: d };
+  }
+  function documentos(x) {
+    const direito = TEM_DIREITO.includes(x.motivo) && x.contribuiu === true;
+    return {
+      direito,
+      solicitacao: true,
+      comunicadoEmpresa: direito,
+      opcaoManutencao: direito && x.opcao === 'manter',
+      movimentacao: true,
+      extincao: true,
+    };
+  }
+  function limpa(s) { return String(s == null ? '' : s).replace(/[^\x20-\x7E -ÿ–—‘’“”•…°ºª]/g, ''); }
+
+  async function gerar(x, arq, lib) {
+    const { PDFDocument, StandardFonts, rgb } = lib;
+    const AZUL = rgb(0.05, 0.12, 0.45), PRETO = rgb(0, 0, 0);
+    const docs = documentos(x);
+    const dp = partes(x.data);
+    const nomeT = nomeProprio(x.titular.nome);
+    const deps = (x.dependentes || []).filter(d => d && d.nome);
+
+    async function abrir(bytes) {
+      const doc = await PDFDocument.load(bytes);
+      const f = { r: await doc.embedFont(StandardFonts.Helvetica), b: await doc.embedFont(StandardFonts.HelveticaBold) };
+      const pages = doc.getPages();
+      const H = pi => pages[pi].getHeight();
+      const c = {
+        doc, pages, f,
+        txt(pi, s, x0, base, size, o = {}) {
+          s = limpa(s); if (!s) return;
+          const fn = o.bold ? f.b : f.r; let sz = size;
+          if (o.maxW) while (fn.widthOfTextAtSize(s, sz) > o.maxW && sz > 5) sz -= 0.25;
+          let w = fn.widthOfTextAtSize(s, sz);
+          if (o.maxW && w > o.maxW) { while (s.length > 1 && fn.widthOfTextAtSize(s + '…', sz) > o.maxW) s = s.slice(0, -1); s += '…'; w = fn.widthOfTextAtSize(s, sz); }
+          const px = o.center ? x0 - w / 2 : o.right ? x0 - w : x0;
+          pages[pi].drawText(s, { x: px, y: H(pi) - base, size: sz, font: fn, color: o.cor || AZUL });
+        },
+        xis(pi, x0, t0, x1, t1) {
+          const p = pages[pi], h = H(pi);
+          p.drawLine({ start: { x: x0, y: h - t0 }, end: { x: x1, y: h - t1 }, thickness: 1.4, color: AZUL });
+          p.drawLine({ start: { x: x0, y: h - t1 }, end: { x: x1, y: h - t0 }, thickness: 1.4, color: AZUL });
+        },
+        // marca X dentro de "(      )" dados os x dos parênteses
+        par(pi, xa, xb, top, bottom) { const cx = (xa + xb) / 2, cy = (top + bottom) / 2 + 0.5; c.xis(pi, cx - 4, cy - 4, cx + 4, cy + 4); },
+        img(pi, im, x0, top, hgt) { const w = im.width * hgt / im.height; pages[pi].drawImage(im, { x: x0, y: H(pi) - top - hgt, width: w, height: hgt }); },
+        branco(pi, x0, t0, x1, t1) { pages[pi].drawRectangle({ x: x0, y: H(pi) - t1, width: x1 - x0, height: t1 - t0, color: rgb(1, 1, 1) }); },
+        linha(pi, x0, x1, top, cor) { pages[pi].drawLine({ start: { x: x0, y: H(pi) - top }, end: { x: x1, y: H(pi) - top }, thickness: 0.8, color: cor || PRETO }); },
+      };
+      return c;
+    }
+    const out = {};
+
+    // ---------- 1. Solicitação de exclusão ----------
+    {
+      const c = await abrir(arq.solicitacao);
+      const carimbo = await c.doc.embedPng(arq.carimbo);
+      c.txt(0, nomeT, 263, 189.5, 11, { maxW: 280 });
+      c.txt(0, x.titular.codigo, 239, 221.5, 11, { maxW: 300 });
+      const mot = { a: [83.4, 119.0, 259.2], b: [84.0, 119.5, 274.5], c: [83.5, 119.1, 289.7], d: [89.2, 124.8, 305.0], e: [86.2, 121.8, 335.5], f: [81.3, 116.9, 366.0] }[x.motivo];
+      if (mot) c.par(0, mot[0], mot[1], mot[2], mot[2] + 11);
+      if (x.motivo === 'f' && x.motivoOutro) c.txt(0, x.motivoOutro, 188, 375, 10.5, { maxW: 350 });
+      if (x.contribuiu === true) c.par(0, 87.4, 123.0, 413.2, 424.2);
+      if (x.contribuiu === false) c.par(0, 86.5, 122.0, 428.5, 439.5);
+      if (x.contribuiu === true) {
+        const p = periodo(x.inicioContribuicao, x.dataExclusao);
+        if (p) { c.txt(0, String(p.anos), 86, 528.5, 11, { center: true }); c.txt(0, String(p.meses), 143.5, 528.5, 11, { center: true }); c.txt(0, String(p.dias), 211.3, 528.5, 11, { center: true }); }
+      }
+      if (docs.direito && x.opcao === 'manter') c.par(0, 84.1, 119.6, 567.2, 578.2);
+      if (docs.direito && x.opcao === 'recusou') c.par(0, 83.4, 118.9, 582.5, 593.5);
+      c.txt(0, dp.d, 449.6, 646.5, 10.5, { center: true });
+      c.txt(0, dp.m, 487.2, 646.5, 10.5, { center: true });
+      c.txt(0, dp.a.slice(2), 524.8, 646.5, 10.5, { center: true });
+      c.img(0, carimbo, 240, 600, 80);
+      out.solicitacao = await c.doc.save();
+    }
+
+    // ---------- 2. Comunicado da empresa ao ex-empregado ----------
+    if (docs.comunicadoEmpresa) {
+      const c = await abrir(arq.comunicadoEmpresa);
+      for (let pi = 0; pi < c.pages.length; pi++) {
+        c.branco(pi, 50, 34, 540, 62);
+        c.txt(pi, 'CUCINARE PRO ALIMENTAÇÃO LTDA', 56.8, 47, 12.5, { bold: true, cor: PRETO });
+        c.txt(pi, 'CNPJ 04.596.502/0001-88  ·  Rua Mateus Grou, 412 - Pinheiros - São Paulo/SP - CEP 05415-040', 56.8, 58.5, 8, { cor: PRETO });
+        c.linha(pi, 56.8, 555.4, 64.5);
+      }
+      const last = c.pages.length - 1;
+      c.txt(last, `Lorena, ${+dp.d} de ${MESES[+dp.m - 1]} de ${dp.a}`, 555.4, 228, 11, { right: true });
+      out.comunicadoEmpresa = await c.doc.save();
+    }
+
+    // ---------- 3. Declaração de opção de manutenção ----------
+    if (docs.opcaoManutencao) {
+      const c = await abrir(arq.opcaoManutencao);
+      c.branco(0, 340, 645, 530, 660);
+      c.txt(0, `Lorena, ${+dp.d} de ${MESES[+dp.m - 1]} de ${dp.a}`, 523.4, 656, 11, { right: true, cor: PRETO });
+      out.opcaoManutencao = await c.doc.save();
+    }
+
+    // ---------- 4. Movimentação cadastral (exclusão) ----------
+    {
+      const c = await abrir(arq.movimentacao);
+      if (deps.length >= 4) { const [cp] = await c.doc.copyPages(c.doc, [1]); c.doc.addPage(cp); c.pages.push(cp); }
+      const carimbo = await c.doc.embedPng(arq.carimbo);
+      c.xis(0, 172.1, 118.8, 179.7, 126.4);              // EXCLUSÃO
+      c.xis(0, 224.9, 146.1, 232.5, 153.7);              // TITULAR
+      if (deps.length) c.xis(0, 314.2, 146.1, 321.8, 153.7); // DEPENDENTE
+      const S = 9;
+      const obs = `Exclusão em ${fmtData(x.dataExclusao)}`;
+      c.txt(0, nomeT, 57, 206.5, 10.5, { maxW: 510 });
+      c.txt(0, fmtCPF(x.titular.cpf), 57, 312, S, { maxW: 165 });
+      c.txt(0, x.titular.codigo, 57, 442, S, { maxW: 340 });
+      c.txt(0, obs, 232.5, 472, S, { maxW: 330 });
+      const blocos = [[0, 548.4, 578.0, 647.4, 677.0, 706.6], [1, 68.6, 98.2, 187.0, 216.6, 246.2], [1, 315.1, 344.7, 433.5, 463.1, 492.7], [2, 68.6, 98.2, 187.0, 216.6, 246.2]];
+      deps.slice(0, 4).forEach((d, i) => {
+        const [pi, tn, tc, tp, tcod, tobs] = blocos[i];
+        if (i === 3) { c.branco(pi, 59, 77.5, 72, 88.5); c.txt(pi, '4', 65.5, 86.3, 8.5, { center: true, bold: true, cor: PRETO }); }
+        c.txt(pi, nomeProprio(d.nome), 88.5, tn + 21.5, 10.5, { maxW: 480 });
+        c.txt(pi, fmtCPF(d.cpf), 57, tc + 15.5, S, { maxW: 180 });
+        c.txt(pi, d.parentesco, 57, tp + 15.5, S, { maxW: 340 });
+        c.txt(pi, d.codigo, 57, tcod + 15.5, S, { maxW: 340 });
+        c.txt(pi, obs, 245.5, tobs + 15.5, S, { maxW: 320 });
+      });
+      for (let pi = 1; pi < c.pages.length; pi++) {
+        c.branco(pi, 395, 605, 570, 620);
+        c.txt(pi, `Lorena, ${+dp.d} de ${MESES[+dp.m - 1]} de ${dp.a}.`, 567.1, 616.5, 10.5, { right: true, cor: PRETO });
+        c.img(pi, carimbo, 140, 574, 80);
+      }
+      out.movimentacao = await c.doc.save();
+    }
+
+    // ---------- 5. Comunicado de extinção do vínculo (portabilidade) ----------
+    {
+      const c = await abrir(arq.extincao);
+      c.branco(0, 330, 84, 495, 98);
+      c.txt(0, `Lorena, ${+dp.d} de ${MESES[+dp.m - 1]} de ${dp.a}.`, 488.9, 94, 11, { right: true, cor: PRETO });
+      const rows = [322.5, 335.5, 348.5, 361.5, 375.0, 388.0];
+      const pessoas = [{ nome: x.titular.nome, valor: x.titular.valor }, ...deps];
+      pessoas.slice(0, 5).forEach((p, i) => {
+        const base = rows[i + 1] - 3.2;
+        c.txt(0, nomeProprio(p.nome), i === 0 ? 96 : 84, base, 8.5, { maxW: i === 0 ? 223 : 235 });
+        c.txt(0, fmtData(x.dataExclusao), 376.2, base, 8.5, { center: true });
+        c.txt(0, fmtValor(p.valor), 494.2, base, 8.5, { center: true, maxW: 120 });
+      });
+      out.extincao = await c.doc.save();
+    }
+
+    return { arquivos: out, docs };
+  }
+
+  const API = { gerar, documentos, periodo, MOTIVOS, TEM_DIREITO, nomeProprio, fmtValor };
+  if (typeof module !== 'undefined') module.exports = API; else root.MotorExclusao = API;
+})(this);
+</script>
 <script>
 const D = DADOS_UNIMED, M = MotorUnimed;
 const ECIVIL = ['Solteiro(a)','Casado(a)','União estável','Divorciado(a)','Separado(a)','Viúvo(a)'];
@@ -370,7 +576,11 @@ let S = {step:0, data:hoje,
   titular:{...vazioPessoa(), email:'',telefone:'',endereco:'',numero:'',complemento:'',bairro:'',cidade:'',cep:'',admissao:'',profissao:''},
   deps:[], resp:{}, esp:{}, leu:false};
 try{const s=sessionStorage.getItem('ficha-unimed'); if(s) S={...S,...JSON.parse(s)}; }catch(e){}
-function salvar(){try{sessionStorage.setItem('ficha-unimed',JSON.stringify(S))}catch(e){}}
+const vazioX=()=>({step:0, data:hoje, dataExclusao:'', titular:{nome:'',cpf:'',codigo:'',valor:''}, motivo:'', motivoOutro:'', contribuiu:'', inicioContribuicao:'', opcao:'', deps:[]});
+let X=vazioX(), MODO='';
+try{const x=sessionStorage.getItem('ficha-unimed-x'); if(x) X={...X,...JSON.parse(x)}; MODO=sessionStorage.getItem('ficha-unimed-modo')||'';}catch(e){}
+S.data=hoje; X.data=hoje;
+function salvar(){try{sessionStorage.setItem('ficha-unimed',JSON.stringify(S));sessionStorage.setItem('ficha-unimed-x',JSON.stringify(X));sessionStorage.setItem('ficha-unimed-modo',MODO)}catch(e){}}
 
 function nprop(){return 1+S.deps.length}
 function ajustaResp(){
@@ -395,7 +605,7 @@ function campo(obj,path,k,label,o={}){
   else ctl=`<input id="${id}" data-p="${path}" data-k="${k}" type="${o.type||'text'}" value="${esc(v)}"${o.ph?` placeholder="${esc(o.ph)}"`:''}${o.im?` inputmode="${o.im}"`:''}${o.mask?` data-mask="${o.mask}"`:''}${o.auto?` autocomplete="${o.auto}"`:''}${o.max?` max="${o.max}"`:''}>`;
   return `<div class="f ${o.cls||'s3'}">${lab}${ctl}${o.hint?`<span class="hint">${o.hint}</span>`:''}</div>`;
 }
-function objDe(path){ return path==='t'?S.titular:S.deps[+path.slice(1)]; }
+function objDe(path){ if(path==='xt') return X.titular; if(path==='x') return X; if(path.startsWith('xd')) return X.deps[+path.slice(2)]; return path==='t'?S.titular:S.deps[+path.slice(1)]; }
 
 const MASK={
   cpf:v=>{v=v.replace(/\D/g,'').slice(0,11);return v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})\.(\d{3})(\d)/,'$1.$2.$3').replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/,'$1.$2.$3-$4')},
@@ -404,7 +614,8 @@ const MASK={
   cns:v=>{v=v.replace(/\D/g,'').slice(0,15);return v.replace(/(\d{3})(\d{0,4})(\d{0,4})(\d{0,4})/,(m,a,b,c,d)=>[a,b,c,d].filter(Boolean).join(' '))},
   mesano:v=>{v=v.replace(/\D/g,'').slice(0,6);return v.length>2?v.slice(0,2)+'/'+v.slice(2):v},
   altura:v=>{v=v.replace(/[^\d,.]/g,'').replace('.',',');const d=v.replace(/\D/g,'');if(/^\d{3}$/.test(d)&&!v.includes(','))return d[0]+','+d.slice(1);return v.slice(0,4)},
-  peso:v=>v.replace(/\D/g,'').slice(0,3)
+  peso:v=>v.replace(/\D/g,'').slice(0,3),
+  valor:v=>v.replace(/[^\d,.]/g,'').slice(0,12)
 };
 
 function pessoaCampos(o,path,tit){
@@ -585,11 +796,30 @@ function mostraErros(r){
 }
 
 /* ---------- render e eventos ---------- */
+const PASSOS_INC=['Seus dados','Dependentes','Saúde','Gerar'];
+const PASSOS_EXC=['Ex-empregado','Dependentes','Gerar'];
+function vEscolha(){
+  return `<div class="choose">
+    <button type="button" class="opt" data-modo="inclusao"><span class="who">Para o funcionário</span><h2>Inclusão</h2><p>Entrar no plano de saúde, com ou sem dependentes. Gera a Declaração de Saúde, a Declaração MPS/GLC e a Movimentação Cadastral.</p></button>
+    <button type="button" class="opt" data-modo="exclusao"><span class="who">Para o RH</span><h2>Exclusão</h2><p>Tirar do plano um funcionário desligado e os dependentes dele. Gera a solicitação de exclusão e os comunicados obrigatórios.</p></button>
+  </div>`;
+}
+function navSteps(nomes,atual){
+  $('#steps').innerHTML=nomes.map((n,i)=>`<button type="button" data-s="${i}"${i===atual?' aria-current="step"':''} class="${i<atual?'done':''}">${i+1} · ${n}</button>`).join('');
+}
 function render(){
+  const semModo=!MODO;
+  $('#steps').hidden=semModo; $('#navbar').hidden=semModo; $('#trocar').hidden=semModo;
+  if(semModo){
+    $('#titulo').textContent='Formulários do plano de saúde';
+    $('#lead').textContent='Escolha o que você precisa fazer. No final você baixa os formulários prontos para imprimir e assinar. Nada do que você digita fica salvo neste site.';
+    $('#view').innerHTML=vEscolha(); salvar(); return;
+  }
+  if(MODO==='exclusao') return renderX();
+  $('#titulo').textContent='Ficha de inclusão no plano de saúde';
+  $('#lead').textContent='Preencha seus dados, os dos seus dependentes e a declaração de saúde. No final você baixa os formulários prontos para imprimir e assinar. Nada do que você digita fica salvo neste site.';
   $('#view').innerHTML=VIEWS[S.step]();
-  document.querySelectorAll('#steps button').forEach(b=>{const s=+b.dataset.s;
-    b.toggleAttribute('aria-current',false); if(s===S.step) b.setAttribute('aria-current','step');
-    b.classList.toggle('done',s<S.step)});
+  navSteps(PASSOS_INC,S.step);
   $('#voltar').disabled=S.step===0;
   $('#avancar').hidden=S.step===3;
   $('#avancar').textContent=S.step===2?'Revisar e gerar':'Continuar';
@@ -597,12 +827,15 @@ function render(){
   salvar();
 }
 function irPara(s){
+  if(MODO==='exclusao') return irParaX(s);
   if(s>S.step){ for(let k=S.step;k<s;k++){ const r=validar(k); if(!r.e.length) continue; if(k!==S.step){S.step=k;render()} mostraErros(r); return } }
   $('#errs').hidden=true; S.step=s; render(); window.scrollTo({top:0});
 }
-$('#avancar').onclick=()=>irPara(S.step+1);
-$('#voltar').onclick=()=>irPara(S.step-1);
+$('#avancar').onclick=()=>irPara((MODO==='exclusao'?X.step:S.step)+1);
+$('#voltar').onclick=()=>irPara((MODO==='exclusao'?X.step:S.step)-1);
 $('#steps').onclick=e=>{const b=e.target.closest('button'); if(b) irPara(+b.dataset.s)};
+$('#trocar').onclick=()=>{MODO=''; $('#errs').hidden=true; render(); window.scrollTo({top:0})};
+document.addEventListener('click',e=>{const o=e.target.closest('[data-modo]'); if(o){MODO=o.dataset.modo; render(); window.scrollTo({top:0})}});
 
 document.addEventListener('input',e=>{
   const el=e.target;
@@ -622,7 +855,7 @@ document.addEventListener('click',e=>{
   if(e.target.id==='adddep'){S.deps.push({...vazioPessoa(),parentesco:''}); ajustaResp(); render(); return}
   if(e.target.dataset.rm!==undefined){S.deps.splice(+e.target.dataset.rm,1); ajustaResp(); render(); return}
   const dl=e.target.closest('[data-dl]'); if(dl){baixar(dl.dataset.dl,dl);return}
-  if(e.target.id==='limpar'){try{sessionStorage.removeItem('ficha-unimed')}catch(_){} location.reload()}
+  if(e.target.id==='limpar'){try{sessionStorage.removeItem('ficha-unimed');sessionStorage.removeItem('ficha-unimed-x');sessionStorage.removeItem('ficha-unimed-modo')}catch(_){} location.reload()}
 });
 
 /* ---------- CEP automático (ViaCEP) ---------- */
@@ -683,6 +916,194 @@ async function baixar(tipo,btn){
 // limpa cache se dados mudarem
 document.addEventListener('input',()=>{cache=null},true);
 document.addEventListener('click',e=>{if(e.target.closest('.ans,[data-rm],#adddep'))cache=null},true);
+
+/* ================= EXCLUSÃO (preenchido pelo RH) ================= */
+const MX = MotorExclusao;
+function radios(name, opts, atual) {
+  return `<div class="radios" id="r-${name}">${opts.map(([v, t]) => `<label class="radio"><input type="radio" name="${name}" data-xr="${name}" value="${v}"${atual === v ? ' checked' : ''}><span>${t}</span></label>`).join('')}</div>`;
+}
+function xDireito() { return MX.TEM_DIREITO.includes(X.motivo) && X.contribuiu === 'sim'; }
+function xPeriodoTxt() {
+  const p = MX.periodo(X.inicioContribuicao, X.dataExclusao);
+  if (!p) return '';
+  const pl = (n, s, pl) => `${n} ${n === 1 ? s : pl}`;
+  return `${pl(p.anos, 'ano', 'anos')}, ${pl(p.meses, 'mês', 'meses')} e ${pl(p.dias, 'dia', 'dias')}`;
+}
+function vxTitular() {
+  const t = X.titular;
+  let h = `<section class="card"><h2>Ex-empregado (titular)</h2><div class="grid">
+    ${campo(t, 'xt', 'nome', 'Nome completo, sem abreviar', { cls: 's6' })}
+    ${campo(t, 'xt', 'cpf', 'CPF', { cls: 's2', im: 'numeric', mask: 'cpf', ph: '000.000.000-00' })}
+    ${campo(t, 'xt', 'codigo', 'Código do beneficiário', { cls: 's2', hint: 'Número da carteirinha Unimed' })}
+    ${campo(t, 'xt', 'valor', 'Valor da mensalidade (R$)', { cls: 's2', im: 'decimal', mask: 'valor', ph: '0,00' })}
+    ${campo(X, 'x', 'dataExclusao', 'Data da exclusão', { cls: 's3', type: 'date' })}
+  </div></section>`;
+  h += `<section class="card"><h2>Motivo da exclusão <span class="req">*</span></h2>
+    ${radios('motivo', Object.entries(MX.MOTIVOS), X.motivo)}
+    ${X.motivo === 'f' ? `<div class="grid">${campo(X, 'x', 'motivoOutro', 'Qual o motivo?', { cls: 's6' })}</div>` : ''}
+  </section>`;
+  h += `<section class="card"><h2>O funcionário contribuía para o plano? <span class="req">*</span></h2>
+    <p class="note" style="margin:0">Contribuição é qualquer valor pago pelo funcionário para o plano dele, inclusive desconto em folha. Valores pagos só por dependentes ou coparticipação não contam.</p>
+    ${radios('contribuiu', [['sim', 'Sim, contribuía'], ['nao', 'Não contribuía']], X.contribuiu)}
+    ${X.contribuiu === 'sim' ? `<div class="grid">${campo(X, 'x', 'inicioContribuicao', 'Início da contribuição', { cls: 's3', type: 'date', hint: 'Normalmente a data de entrada no plano' })}</div>
+      ${xPeriodoTxt() ? `<div class="calc">Período de contribuição até a exclusão: <b>${xPeriodoTxt()}</b></div>` : ''}` : ''}
+  </section>`;
+  if (xDireito()) {
+    h += `<section class="card"><h2>Manutenção do plano como inativo</h2>
+      <p class="note" style="margin:0">Pelos arts. 30 e 31 da Lei 9.656/98, este ex-empregado pode continuar no plano pagando a mensalidade integral. Ele tem até 30 dias para decidir.</p>
+      ${radios('opcao', [['manter', 'Optou por manter o plano'], ['recusou', 'Recusou manter o plano'], ['pendente', 'Ainda não respondeu (deixar em branco)']], X.opcao)}
+    </section>`;
+  }
+  return h;
+}
+function vxDeps() {
+  let h = `<section class="card"><h2>Dependentes a excluir</h2><p class="lead" style="margin:0">Inclua os dependentes que saem do plano junto com o titular (até 4). Se não houver, é só continuar.</p></section>`;
+  X.deps.forEach((d, i) => {
+    h += `<section class="card"><div class="dephead"><span class="tag">Dependente ${i + 1}</span><button type="button" class="btn ghost" data-xrm="${i}">Remover</button></div><div class="grid">
+      ${campo(d, 'xd' + i, 'nome', 'Nome completo', { cls: 's6' })}
+      ${campo(d, 'xd' + i, 'cpf', 'CPF', { cls: 's2', im: 'numeric', mask: 'cpf', req: false, ph: '000.000.000-00' })}
+      ${campo(d, 'xd' + i, 'codigo', 'Código do beneficiário', { cls: 's2' })}
+      ${campo(d, 'xd' + i, 'parentesco', 'Parentesco', { cls: 's2', opts: PARENT })}
+      ${campo(d, 'xd' + i, 'valor', 'Valor da mensalidade (R$)', { cls: 's2', im: 'decimal', mask: 'valor', ph: '0,00' })}
+    </div></section>`;
+  });
+  if (X.deps.length < 4) h += `<button type="button" class="btn" id="xadddep">+ Adicionar dependente</button>`;
+  return h;
+}
+const XDOCS = [
+  ['solicitacao', '1. Solicitação de exclusão do titular', 'Assinatura e carimbo da empresa (já sai carimbado)'],
+  ['comunicadoEmpresa', '2. Comunicado da empresa ao ex-empregado', 'Assinatura do ex-empregado'],
+  ['opcaoManutencao', '3. Declaração de opção de manutenção', 'Assinatura do ex-empregado'],
+  ['movimentacao', '4. Movimentação Cadastral (exclusão)', 'Assinatura do titular (empresa já sai carimbada)'],
+  ['extincao', '5. Comunicado de extinção do vínculo (portabilidade)', 'Ex-empregado assina o protocolo de recebimento'],
+];
+function xDocsMotivo(k, docs) {
+  if (docs[k]) return '';
+  if (k === 'comunicadoEmpresa') return 'Só para demissão sem justa causa ou aposentadoria, quando o funcionário contribuía';
+  if (k === 'opcaoManutencao') return docs.direito ? 'Só quando o ex-empregado opta por manter o plano' : 'Não se aplica a este motivo';
+  return '';
+}
+function vxGerar() {
+  const docs = MX.documentos({ motivo: X.motivo, contribuiu: X.contribuiu === 'sim', opcao: X.opcao });
+  const lista = XDOCS.map(([k, n, ass]) => `<div class="docrow${docs[k] ? '' : ' off'}"><div class="t"><b>${n}</b><small>${docs[k] ? ass : xDocsMotivo(k, docs)}</small></div>
+    ${docs[k] ? `<button type="button" class="btn" data-xdl="${k}">Baixar</button>` : '<span class="pill no">Não se aplica</span>'}</div>`).join('');
+  return `<section class="card"><h2>Conferência</h2><dl class="sum">
+    <dt>Ex-empregado</dt><dd>${esc(MX.nomeProprio(X.titular.nome))}</dd>
+    <dt>Motivo</dt><dd>${esc(MX.MOTIVOS[X.motivo] || '')}</dd>
+    <dt>Data da exclusão</dt><dd class="num">${M.fmtData(X.dataExclusao)}</dd>
+    <dt>Dependentes excluídos</dt><dd class="num">${X.deps.length}</dd>
+    <dt>Data dos formulários</dt><dd class="num">${M.fmtData(X.data)}</dd>
+  </dl></section>
+  <section class="card"><h2>Baixar os formulários</h2>
+    <div class="file"><span><b>Todos os formulários</b> · um PDF só, na ordem certa</span><button type="button" class="btn primary" data-xdl="tudo">Baixar</button></div>
+    <div class="doclist">${lista}</div>
+    <div id="dlmsg" class="note" role="status"></div>
+  </section>
+  <section class="card"><h2>Próximos passos</h2><ol class="steps-list">
+    <li>Imprima os formulários e colha as assinaturas indicadas em cada um.</li>
+    ${docs.comunicadoEmpresa ? '<li>Entregue o <b>Comunicado da empresa</b> no ato da rescisão. O ex-empregado tem <b>30 dias</b> para decidir se mantém o plano.</li>' : ''}
+    ${docs.direito ? '<li>Se ele optar por manter, deve ir à sede da Unimed de Lorena nesse prazo com comprovante de endereço, comprovante da contribuição (holerite com o desconto) e cópia da CTPS com início e fim do contrato.</li>' : ''}
+    <li>Entregue o <b>Comunicado de extinção do vínculo</b> e peça para ele assinar o protocolo. A portabilidade de carências pode ser pedida em até <b>60 dias</b>.</li>
+    <li>Envie à Unimed a Solicitação de exclusão e a Movimentação Cadastral assinadas.</li>
+  </ol>
+  <button type="button" class="btn ghost" id="limpar">Apagar os dados desta tela</button></section>`;
+}
+const XVIEWS = [vxTitular, vxDeps, vxGerar];
+function renderX() {
+  $('#titulo').textContent = 'Exclusão do plano de saúde';
+  $('#lead').textContent = 'Para o RH: preencha os dados do ex-empregado e dos dependentes. No final você baixa os formulários de exclusão prontos para assinar. Nada do que você digita fica salvo neste site.';
+  $('#view').innerHTML = XVIEWS[X.step]();
+  navSteps(PASSOS_EXC, X.step);
+  $('#voltar').disabled = X.step === 0;
+  $('#avancar').hidden = X.step === 2;
+  $('#avancar').textContent = X.step === 1 ? 'Revisar e gerar' : 'Continuar';
+  $('#pos').textContent = `Etapa ${X.step + 1} de 3`;
+  salvar();
+}
+function validarX(step) {
+  const e = [], bad = [];
+  const req = (o, path, k, nome) => { if (!String(o[k] ?? '').trim()) { e.push(nome); bad.push(`${path}.${k}`); } };
+  const valorOk = v => parseFloat(String(v || '').replace(/\./g, '').replace(',', '.')) > 0;
+  if (step === 0) {
+    const t = X.titular;
+    req(t, 'xt', 'nome', 'Nome do ex-empregado');
+    if (!cpfOk(t.cpf)) { e.push('CPF do ex-empregado inválido'); bad.push('xt.cpf'); }
+    req(t, 'xt', 'codigo', 'Código do beneficiário do titular');
+    if (!valorOk(t.valor)) { e.push('Valor da mensalidade do titular'); bad.push('xt.valor'); }
+    req(X, 'x', 'dataExclusao', 'Data da exclusão');
+    if (!X.motivo) { e.push('Motivo da exclusão'); bad.push('r-motivo'); }
+    if (X.motivo === 'f') req(X, 'x', 'motivoOutro', 'Descreva o motivo');
+    if (!X.contribuiu) { e.push('Informe se o funcionário contribuía'); bad.push('r-contribuiu'); }
+    if (X.contribuiu === 'sim') {
+      req(X, 'x', 'inicioContribuicao', 'Início da contribuição');
+      if (X.inicioContribuicao && X.dataExclusao && !MX.periodo(X.inicioContribuicao, X.dataExclusao)) { e.push('O início da contribuição precisa ser antes da exclusão'); bad.push('x.inicioContribuicao'); }
+    }
+    if (xDireito() && !X.opcao) { e.push('Informe a opção do ex-empregado sobre manter o plano'); bad.push('r-opcao'); }
+  }
+  if (step === 1) X.deps.forEach((d, i) => {
+    const q = `Dependente ${i + 1}`;
+    req(d, 'xd' + i, 'nome', `${q}: nome`);
+    if (d.cpf && !cpfOk(d.cpf)) { e.push(`${q}: CPF inválido`); bad.push(`xd${i}.cpf`); }
+    req(d, 'xd' + i, 'codigo', `${q}: código do beneficiário`);
+    if (!PARENT.includes(d.parentesco)) { e.push(`${q}: parentesco`); bad.push(`xd${i}.parentesco`); }
+    if (!valorOk(d.valor)) { e.push(`${q}: valor da mensalidade`); bad.push(`xd${i}.valor`); }
+  });
+  return { e, bad };
+}
+function irParaX(s) {
+  if (s > X.step) { for (let k = X.step; k < s; k++) { const r = validarX(k); if (!r.e.length) continue; if (k !== X.step) { X.step = k; renderX(); } mostraErros(r); return; } }
+  $('#errs').hidden = true; X.step = s; renderX(); window.scrollTo({ top: 0 });
+}
+document.addEventListener('change', e => {
+  const r = e.target.dataset && e.target.dataset.xr;
+  if (!r) return;
+  X[r] = e.target.value; cacheX = null;
+  if (r === 'contribuiu' && X.contribuiu !== 'sim') X.inicioContribuicao = '';
+  if (!xDireito()) X.opcao = '';
+  const y = window.scrollY; renderX(); window.scrollTo({ top: y });
+});
+document.addEventListener('input', e => {
+  cacheX = null;
+  if (MODO === 'exclusao' && ['x.inicioContribuicao', 'x.dataExclusao'].includes(e.target.id) && X.step === 0 && X.contribuiu === 'sim') {
+    const c = document.querySelector('.calc'); const t = xPeriodoTxt();
+    if (c && t) c.innerHTML = `Período de contribuição até a exclusão: <b>${t}</b>`;
+    else if (!c && t) { const y = window.scrollY; renderX(); window.scrollTo({ top: y }); }
+  }
+});
+document.addEventListener('click', e => {
+  if (e.target.id === 'xadddep') { X.deps.push({ nome: '', cpf: '', codigo: '', parentesco: '', valor: '' }); cacheX = null; renderX(); return; }
+  if (e.target.dataset && e.target.dataset.xrm !== undefined) { X.deps.splice(+e.target.dataset.xrm, 1); cacheX = null; renderX(); return; }
+  const dl = e.target.closest('[data-xdl]'); if (dl) baixarX(dl.dataset.xdl, dl);
+});
+let cacheX = null, arqsX = null;
+async function gerarX() {
+  if (cacheX) return cacheX;
+  if (!arqsX) {
+    const get = async n => { const r = await fetch(n); if (!r.ok) throw new Error('Não consegui carregar ' + n); return new Uint8Array(await r.arrayBuffer()); };
+    const nomes = ['exclusao/1_solicitacao.pdf', 'exclusao/2_comunicado_empresa.pdf', 'exclusao/3_opcao_manutencao.pdf', 'exclusao/4_movimentacao.pdf', 'exclusao/5_extincao_vinculo.pdf', 'carimbo_empresa.png'];
+    const [solicitacao, comunicadoEmpresa, opcaoManutencao, movimentacao, extincao, carimbo] = await Promise.all(nomes.map(get));
+    arqsX = { solicitacao, comunicadoEmpresa, opcaoManutencao, movimentacao, extincao, carimbo };
+  }
+  const dados = { ...X, contribuiu: X.contribuiu === 'sim' ? true : X.contribuiu === 'nao' ? false : null, opcao: X.opcao === 'pendente' ? '' : X.opcao, dependentes: X.deps };
+  const r = await MX.gerar(dados, arqsX, PDFLib);
+  const tudo = await PDFLib.PDFDocument.create();
+  for (const [k] of XDOCS) { const b = r.arquivos[k]; if (!b) continue; const d = await PDFLib.PDFDocument.load(b); (await tudo.copyPages(d, d.getPageIndices())).forEach(p => tudo.addPage(p)); }
+  r.arquivos.tudo = await tudo.save();
+  return cacheX = r;
+}
+const XNOMES = { tudo: 'Exclusao Unimed', solicitacao: '1 Solicitacao de exclusao', comunicadoEmpresa: '2 Comunicado da empresa', opcaoManutencao: '3 Opcao de manutencao', movimentacao: '4 Movimentacao Cadastral', extincao: '5 Extincao do vinculo' };
+async function baixarX(tipo, btn) {
+  const msg = $('#dlmsg'); btn.disabled = true; msg.textContent = 'Preparando o PDF…';
+  try {
+    const r = await gerarX();
+    const nome = `${XNOMES[tipo]} - ${MX.nomeProprio(X.titular.nome)}.pdf`;
+    const url = URL.createObjectURL(new Blob([r.arquivos[tipo]], { type: 'application/pdf' }));
+    const a = document.createElement('a'); a.href = url; a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    msg.textContent = `Baixado: ${nome}`;
+  } catch (err) { msg.textContent = (err && err.message) || 'Não foi possível gerar o arquivo.'; }
+  finally { btn.disabled = false; }
+}
 
 render();
 </script>
