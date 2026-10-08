@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Ficha de Inclusão Cucinare</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: formulário em etapas, coluna única de 720px, barra de etapas no topo e navegação fixa no rodapé */
+:root{
+  --paper:#f6f7f4; --card:#ffffff; --ink:#18202b; --muted:#5b6573; --line:#d9ddd6;
+  --pen:#1d3f94; --pen-soft:#e7ecf8; --sim:#b4321f; --sim-soft:#fbe9e5; --ok:#2f7a4b; --ok-soft:#e5f2ea;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Public Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#12161c; --card:#1a2028; --ink:#e7eaee; --muted:#9aa4b1; --line:#2c3440;
+  --pen:#8fb0ff; --pen-soft:#1f2b45; --sim:#ff8c75; --sim-soft:#3a201b; --ok:#7fd3a0; --ok-soft:#18301f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#12161c; --card:#1a2028; --ink:#e7eaee; --muted:#9aa4b1; --line:#2c3440;
+  --pen:#8fb0ff; --pen-soft:#1f2b45; --sim:#ff8c75; --sim-soft:#3a201b; --ok:#7fd3a0; --ok-soft:#18301f; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font:15px/1.5 var(--body);margin:0}
+.wrap{max-width:720px;margin:0 auto;padding-inline:16px;padding-block:20px 120px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:1.65rem;line-height:1.15}
+h2{font-size:1.25rem}
+h3{font-size:1rem;font-family:var(--body);font-weight:700;letter-spacing:0}
+.eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.lead{color:var(--muted);margin:.4rem 0 0;max-width:60ch}
+header.top{display:flex;flex-direction:column;gap:.35rem;margin-bottom:1rem}
+.steps{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);display:flex;gap:6px;padding-block:10px;margin-bottom:12px;border-bottom:1px solid var(--line)}
+.steps button{flex:1;min-width:0;border:0;background:none;font:600 .78rem var(--body);color:var(--muted);padding:6px 4px;border-bottom:3px solid var(--line);cursor:pointer;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.steps button[aria-current="step"]{color:var(--pen);border-color:var(--pen)}
+.steps button.done{color:var(--ok);border-color:var(--ok)}
+section.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 16px;display:flex;flex-direction:column;gap:14px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.f{display:flex;flex-direction:column;gap:4px;grid-column:span 6;min-width:0}
+.s2{grid-column:span 2}.s3{grid-column:span 3}.s4{grid-column:span 4}
+@media (max-width:560px){.s2,.s3,.s4{grid-column:span 6}.s2.half,.s3.half{grid-column:span 3}}
+label{font-size:.8rem;font-weight:600;color:var(--ink)}
+label .req{color:var(--sim)}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:7px;padding:9px 10px;width:100%;min-width:0}
+textarea{resize:vertical;min-height:60px}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--pen);outline-offset:1px}
+.bad{border-color:var(--sim)!important;background:var(--sim-soft)}
+.hint{font-size:.75rem;color:var(--muted)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.btn{font:600 .92rem var(--body);border-radius:8px;padding:10px 16px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--pen);border-color:var(--pen);color:var(--card)}
+.btn.ghost{background:none}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.navbar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+.navbar .in{max-width:720px;margin:0 auto;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.errs{border:1px solid var(--sim);background:var(--sim-soft);color:var(--ink);border-radius:8px;padding:10px 14px;font-size:.88rem}
+.errs ul{margin:.3rem 0 0;padding-left:1.1rem}
+.dephead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tag{font:600 .7rem var(--body);text-transform:uppercase;letter-spacing:.06em;color:var(--pen);background:var(--pen-soft);border-radius:4px;padding:2px 7px}
+/* questionário */
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:.82rem;color:var(--muted)}
+.qgroup{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.qgroup>h3{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:baseline}
+.qgroup>h3 .n{font-family:var(--mono);color:var(--pen);font-size:.85rem;min-width:1.6em}
+.q{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.q:last-child{border-bottom:0}
+.q .lbl{display:flex;gap:10px;font-size:.92rem}
+.q .lbl .sub{font-family:var(--mono);color:var(--muted);min-width:1.6em;font-size:.82rem;padding-top:1px}
+.answers{display:flex;flex-wrap:wrap;gap:6px;padding-left:2.2em}
+.ans{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:4px 6px 4px 11px;font:500 .8rem var(--body);cursor:pointer}
+.ans b{font-family:var(--mono);width:22px;height:22px;border-radius:50%;display:inline-grid;place-items:center;background:var(--card);border:1px solid var(--line);font-size:.8rem}
+.ans[aria-pressed="true"]{border-color:var(--sim);background:var(--sim-soft)}
+.ans[aria-pressed="true"] b{background:var(--sim);color:var(--card);border-color:var(--sim)}
+.spec{margin-left:2.2em;border-left:3px solid var(--sim);padding:8px 0 8px 12px;display:grid;grid-template-columns:minmax(0,1fr) 130px;gap:8px}
+@media (max-width:560px){.spec{grid-template-columns:minmax(0,1fr)}.answers,.spec{padding-left:0;margin-left:0}}
+.spec .who{grid-column:1/-1;font-size:.78rem;font-weight:700;color:var(--sim);text-transform:uppercase;letter-spacing:.05em}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:.9rem}
+.check input{width:auto;margin-top:4px}
+/* revisão */
+.sum{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 14px;font-size:.9rem}
+.sum dt{color:var(--muted)}
+.sum dd{margin:0;text-align:right;font-weight:600}
+.files{display:flex;flex-direction:column;gap:8px}
+.file{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--paper)}
+.file span{min-width:0;overflow-wrap:anywhere;font-size:.9rem}
+.steps-list{margin:0;padding-left:1.2rem;display:flex;flex-direction:column;gap:6px}
+.note{font-size:.82rem;color:var(--muted)}
+.okbox{border:1px solid var(--ok);background:var(--ok-soft);border-radius:8px;padding:10px 14px;font-size:.88rem}
+@media (prefers-reduced-motion:no-preference){.ans,.btn{transition:background .12s,border-color .12s}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">Cucinare Pro Alimentação · Plano Unimed Lorena</span>
+    <h1>Ficha de inclusão no plano de saúde</h1>
+    <p class="lead">Preencha seus dados, os dos seus dependentes e a declaração de saúde. No final você baixa os formulários prontos para imprimir e assinar. Nada do que você digita fica salvo neste site.</p>
+  </header>
+
+  <nav class="steps" id="steps" aria-label="Etapas">
+    <button type="button" data-s="0">1 · Seus dados</button>
+    <button type="button" data-s="1">2 · Dependentes</button>
+    <button type="button" data-s="2">3 · Saúde</button>
+    <button type="button" data-s="3">4 · Gerar</button>
+  </nav>
+
+  <div id="errs" class="errs" hidden></div>
+  <main id="view"></main>
+</div>
+
+<div class="navbar"><div class="in">
+  <button type="button" class="btn ghost" id="voltar">Voltar</button>
+  <span class="note" id="pos"></span>
+  <button type="button" class="btn primary" id="avancar">Continuar</button>
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script>const DADOS_UNIMED = {"grupos": {"1": "Sofre(u) de alguma doença infecciosa ou parasitária?", "2": "Sofre(u) de neoplasias malignas (câncer)?", "3": "Sofre(u) de neoplasias benignas?", "4": "Doenças do sangue", "5": "Sofre(u) de doenças endócrinas?", "6": "Sofre(u) de transtornos psiquiátricos ou mentais?", "7": "Sofre(u) de doenças do sistema nervoso?", "8": "Sofre(u) de doenças dos olhos e anexos?", "9": "Sofre(u) de doenças do ouvido?", "10": "Sofre(u) de doenças do aparelho cardiocirculatório?", "11": "Sofre(u) de doenças do aparelho respiratório?", "12": "Sofre(u) de doenças do aparelho digestivo?", "13": "Sofre(u) de doenças da pele?", "14": "Sofre(u) de doenças osteomusculares?", "15": "Sofre(u) de doenças do aparelho geniturinário?", "16": "Sofre(u) de problemas nos dentes ou boca?", "17": "Usou ou usa aparelho ortodôntico nos dentes?", "18": "Sofre(u) de problemas na articulação temporomandibular (ATM)?", "19": "Sofre(u) de problemas no queixo: micrognatia (queixo pequeno) ou prognatismo (queixo para frente)?", "20": "Sofre(u) de traumatismos e/ou fraturas?", "21": "Sofre(u) de má formação congênita (doenças de nascença)?", "22": "Sofre de sequelas de acidentes, moléstia adquirida, doenças ou má formação congênitas?", "23": "Já foi submetido(a) a algum tipo de cirurgia? Teve alguma sequela?", "24": "Sofre(u) de alguma doença que o(a) tenha obrigado a internar-se ou submeter-se a algum tipo de tratamento ou exame?", "25": "Já foi submetido(a) a radioterapia, quimioterapia ou braquioterapia?", "26": "Já foi submetido(a) a hemodiálise ou diálise peritoneal?", "27": "Tem indicação de submeter-se a algum tipo de cirurgia ou transplante?", "28": "Possui algum tipo de prótese ou órtese (placas, pinos, parafusos, marca-passo, outros materiais implantados)?", "29": "Algum dos ascendentes diretos (pais e avós) sofre(u) de alguma doença abaixo?"}, "perguntas": [{"id": "1a", "item": "1", "sub": "A", "grupo": 1, "texto": "Tuberculose", "dica": null}, {"id": "1b", "item": "1", "sub": "B", "grupo": 1, "texto": "Hepatite", "dica": null}, {"id": "1c", "item": "1", "sub": "C", "grupo": 1, "texto": "AIDS ou é portador do vírus HIV", "dica": null}, {"id": "1d", "item": "1", "sub": "D", "grupo": 1, "texto": "Meningite", "dica": null}, {"id": "1e", "item": "1", "sub": "E", "grupo": 1, "texto": "Hanseníase", "dica": null}, {"id": "1f", "item": "1", "sub": "F", "grupo": 1, "texto": "Outros (Herpes, Doença de Chagas, Toxoplasmose, outros)", "dica": null}, {"id": "2a", "item": "2", "sub": "A", "grupo": 2, "texto": "Aparelho digestivo (estômago, intestino, colo, outros)", "dica": null}, {"id": "2b", "item": "2", "sub": "B", "grupo": 2, "texto": "Aparelho respiratório (pulmão, outros)", "dica": null}, {"id": "2c", "item": "2", "sub": "C", "grupo": 2, "texto": "Pele", "dica": null}, {"id": "2d", "item": "2", "sub": "D", "grupo": 2, "texto": "Mama", "dica": null}, {"id": "2e", "item": "2", "sub": "E", "grupo": 2, "texto": "Órgãos genitais femininos (útero, ovário, outros)", "dica": null}, {"id": "2f", "item": "2", "sub": "F", "grupo": 2, "texto": "Órgãos genitais masculinos (próstata, outros)", "dica": null}, {"id": "2g", "item": "2", "sub": "G", "grupo": 2, "texto": "Trato urinário (rins, bexiga, outros)", "dica": null}, {"id": "2h", "item": "2", "sub": "H", "grupo": 2, "texto": "Tireoide", "dica": null}, {"id": "2i", "item": "2", "sub": "I", "grupo": 2, "texto": "Linfoma", "dica": null}, {"id": "2j", "item": "2", "sub": "J", "grupo": 2, "texto": "Leucemia", "dica": null}, {"id": "2k", "item": "2", "sub": "K", "grupo": 2, "texto": "Outras localizações", "dica": null}, {"id": "3a", "item": "3", "sub": "A", "grupo": 3, "texto": "Útero (mioma) (mulher)", "dica": null}, {"id": "3b", "item": "3", "sub": "B", "grupo": 3, "texto": "Pele (nevus)", "dica": null}, {"id": "3c", "item": "3", "sub": "C", "grupo": 3, "texto": "Outros", "dica": null}, {"id": "4", "item": "4", "sub": "", "grupo": 4, "texto": "Sofre(u) de doenças do sangue (anemia, púrpura, hemofilia, talassemia, outros)", "dica": null}, {"id": "5a", "item": "5", "sub": "A", "grupo": 5, "texto": "Diabetes", "dica": null}, {"id": "5b", "item": "5", "sub": "B", "grupo": 5, "texto": "Tireoide", "dica": null}, {"id": "5c", "item": "5", "sub": "C", "grupo": 5, "texto": "Paratireoide", "dica": null}, {"id": "5d", "item": "5", "sub": "D", "grupo": 5, "texto": "Hipófise", "dica": null}, {"id": "5e", "item": "5", "sub": "E", "grupo": 5, "texto": "Suprarrenais", "dica": null}, {"id": "5f", "item": "5", "sub": "F", "grupo": 5, "texto": "Emagrecimento acentuado", "dica": null}, {"id": "5g", "item": "5", "sub": "G", "grupo": 5, "texto": "Obesidade", "dica": null}, {"id": "5h", "item": "5", "sub": "H", "grupo": 5, "texto": "Outros distúrbios hormonais ou doenças endócrinas, congênitas ou não", "dica": null}, {"id": "6a", "item": "6", "sub": "A", "grupo": 6, "texto": "Psicose", "dica": null}, {"id": "6b", "item": "6", "sub": "B", "grupo": 6, "texto": "Esquizofrenia", "dica": null}, {"id": "6c", "item": "6", "sub": "C", "grupo": 6, "texto": "Neurose", "dica": null}, {"id": "6d", "item": "6", "sub": "D", "grupo": 6, "texto": "Depressão", "dica": null}, {"id": "6e", "item": "6", "sub": "E", "grupo": 6, "texto": "Outros distúrbios psiquiátricos", "dica": null}, {"id": "7a", "item": "7", "sub": "A", "grupo": 7, "texto": "Autismo? Síndrome de Asperger?", "dica": null}, {"id": "7b", "item": "7", "sub": "B", "grupo": 7, "texto": "Síndrome de Asperger", "dica": null}, {"id": "7c", "item": "7", "sub": "C", "grupo": 7, "texto": "Parkinson", "dica": null}, {"id": "7d", "item": "7", "sub": "D", "grupo": 7, "texto": "Alzheimer", "dica": null}, {"id": "7e", "item": "7", "sub": "E", "grupo": 7, "texto": "Epilepsia", "dica": null}, {"id": "7f", "item": "7", "sub": "F", "grupo": 7, "texto": "Distúrbio do desenvolvimento neuropsicomotor", "dica": null}, {"id": "7g", "item": "7", "sub": "G", "grupo": 7, "texto": "Algum tipo de paralisia", "dica": null}, {"id": "7h", "item": "7", "sub": "H", "grupo": 7, "texto": "Esclerose múltipla", "dica": null}, {"id": "7i", "item": "7", "sub": "I", "grupo": 7, "texto": "Lúpus", "dica": null}, {"id": "7j", "item": "7", "sub": "J", "grupo": 7, "texto": "Outras (manchas, sinais ou outras)", "dica": null}, {"id": "8a", "item": "8", "sub": "A", "grupo": 8, "texto": "Catarata", "dica": null}, {"id": "8b", "item": "8", "sub": "B", "grupo": 8, "texto": "Glaucoma", "dica": null}, {"id": "8c", "item": "8", "sub": "C", "grupo": 8, "texto": "Ceratocone", "dica": null}, {"id": "8d", "item": "8", "sub": "D", "grupo": 8, "texto": "Miopia", "dica": "Informe o grau (ex.: 1,5° OD / 1,0° OE) e se usa óculos ou lentes"}, {"id": "8e", "item": "8", "sub": "E", "grupo": 8, "texto": "Astigmatismo", "dica": "Informe o grau (ex.: 1,5° OD / 1,0° OE) e se usa óculos ou lentes"}, {"id": "8f", "item": "8", "sub": "F", "grupo": 8, "texto": "Hipermetropia", "dica": "Informe o grau (ex.: 1,5° OD / 1,0° OE) e se usa óculos ou lentes"}, {"id": "8g", "item": "8", "sub": "G", "grupo": 8, "texto": "Pterígio", "dica": null}, {"id": "8h", "item": "8", "sub": "H", "grupo": 8, "texto": "Estrabismo", "dica": null}, {"id": "8i", "item": "8", "sub": "I", "grupo": 8, "texto": "Doenças da retina", "dica": null}, {"id": "8j", "item": "8", "sub": "J", "grupo": 8, "texto": "Outras", "dica": null}, {"id": "9a", "item": "9", "sub": "A", "grupo": 9, "texto": "Labirintite", "dica": null}, {"id": "9b", "item": "9", "sub": "B", "grupo": 9, "texto": "Perda auditiva", "dica": null}, {"id": "9c", "item": "9", "sub": "C", "grupo": 9, "texto": "Perfuração do tímpano", "dica": null}, {"id": "9d", "item": "9", "sub": "D", "grupo": 9, "texto": "Outras", "dica": null}, {"id": "10a", "item": "10", "sub": "A", "grupo": 10, "texto": "Febre reumática", "dica": null}, {"id": "10b", "item": "10", "sub": "B", "grupo": 10, "texto": "Hipertensão arterial (pressão alta)", "dica": null}, {"id": "10c", "item": "10", "sub": "C", "grupo": 10, "texto": "Angina pectoris", "dica": null}, {"id": "10d", "item": "10", "sub": "D", "grupo": 10, "texto": "Infarto do miocárdio", "dica": null}, {"id": "10e", "item": "10", "sub": "E", "grupo": 10, "texto": "Arritmia cardíaca", "dica": null}, {"id": "10f", "item": "10", "sub": "F", "grupo": 10, "texto": "Insuficiência cardíaca", "dica": null}, {"id": "10g", "item": "10", "sub": "G", "grupo": 10, "texto": "Doenças nas válvulas do coração", "dica": null}, {"id": "10h", "item": "10", "sub": "H", "grupo": 10, "texto": "Acidente vascular cerebral (\"derrame\")", "dica": null}, {"id": "10i", "item": "10", "sub": "I", "grupo": 10, "texto": "Aneurisma", "dica": null}, {"id": "10j", "item": "10", "sub": "J", "grupo": 10, "texto": "Varizes de membros inferiores", "dica": null}, {"id": "10k", "item": "10", "sub": "K", "grupo": 10, "texto": "Hemorroidas", "dica": null}, {"id": "10l", "item": "10", "sub": "L", "grupo": 10, "texto": "Má formação congênita no coração", "dica": null}, {"id": "10m", "item": "10", "sub": "M", "grupo": 10, "texto": "Má formação congênita em artérias ou veias", "dica": null}, {"id": "10n", "item": "10", "sub": "N", "grupo": 10, "texto": "Outras (sopros no coração, doenças de artérias, veias ou vasos linfáticos)", "dica": null}, {"id": "11a", "item": "11", "sub": "A", "grupo": 11, "texto": "Rinite", "dica": null}, {"id": "11b", "item": "11", "sub": "B", "grupo": 11, "texto": "Sinusite", "dica": null}, {"id": "11c", "item": "11", "sub": "C", "grupo": 11, "texto": "Bronquite", "dica": null}, {"id": "11d", "item": "11", "sub": "D", "grupo": 11, "texto": "Asma", "dica": null}, {"id": "11e", "item": "11", "sub": "E", "grupo": 11, "texto": "Pneumonia", "dica": null}, {"id": "11f", "item": "11", "sub": "F", "grupo": 11, "texto": "Enfisema", "dica": null}, {"id": "11g", "item": "11", "sub": "G", "grupo": 11, "texto": "Desvio de septo nasal", "dica": null}, {"id": "11h", "item": "11", "sub": "H", "grupo": 11, "texto": "Doença pulmonar obstrutiva crônica (DPOC)", "dica": null}, {"id": "11i", "item": "11", "sub": "I", "grupo": 11, "texto": "Outras doenças", "dica": null}, {"id": "12a", "item": "12", "sub": "A", "grupo": 12, "texto": "Úlcera do estômago ou duodeno", "dica": null}, {"id": "12b", "item": "12", "sub": "B", "grupo": 12, "texto": "Gastrite", "dica": null}, {"id": "12c", "item": "12", "sub": "C", "grupo": 12, "texto": "Hérnia", "dica": "Informe o local da hérnia, o diagnóstico e se está em tratamento"}, {"id": "12d", "item": "12", "sub": "D", "grupo": 12, "texto": "Doença diverticular do intestino", "dica": null}, {"id": "12e", "item": "12", "sub": "E", "grupo": 12, "texto": "Doenças do fígado (hepatite, cirrose ou outros)", "dica": null}, {"id": "12f", "item": "12", "sub": "F", "grupo": 12, "texto": "Colite", "dica": null}, {"id": "12g", "item": "12", "sub": "G", "grupo": 12, "texto": "Pâncreas / pancreatite", "dica": null}, {"id": "12h", "item": "12", "sub": "H", "grupo": 12, "texto": "Colelitíase (cálculo ou pedra na vesícula)", "dica": null}, {"id": "12i", "item": "12", "sub": "I", "grupo": 12, "texto": "Outras doenças", "dica": null}, {"id": "13a", "item": "13", "sub": "A", "grupo": 13, "texto": "Verrugas", "dica": "Informe o diagnóstico (nome da doença), o local e se está em tratamento"}, {"id": "13b", "item": "13", "sub": "B", "grupo": 13, "texto": "\"Pintas\"", "dica": "Informe o diagnóstico (nome da doença), o local e se está em tratamento"}, {"id": "13c", "item": "13", "sub": "C", "grupo": 13, "texto": "Queloide", "dica": "Informe o diagnóstico (nome da doença), o local e se está em tratamento"}, {"id": "13d", "item": "13", "sub": "D", "grupo": 13, "texto": "\"Caroços\" ou tumores", "dica": "Informe o diagnóstico (nome da doença), o local e se está em tratamento"}, {"id": "13e", "item": "13", "sub": "E", "grupo": 13, "texto": "Xantelasma", "dica": "Informe o diagnóstico (nome da doença), o local e se está em tratamento"}, {"id": "13f", "item": "13", "sub": "F", "grupo": 13, "texto": "Cistos", "dica": "Informe o diagnóstico (nome da doença), o local e se está em tratamento"}, {"id": "13g", "item": "13", "sub": "G", "grupo": 13, "texto": "Calos", "dica": "Informe o diagnóstico (nome da doença), o local e se está em tratamento"}, {"id": "13h", "item": "13", "sub": "H", "grupo": 13, "texto": "Psoríase", "dica": "Informe o diagnóstico (nome da doença), o local e se está em tratamento"}, {"id": "13i", "item": "13", "sub": "I", "grupo": 13, "texto": "Vitiligo", "dica": "Informe o diagnóstico (nome da doença), o local e se está em tratamento"}, {"id": "13j", "item": "13", "sub": "J", "grupo": 13, "texto": "Alergias", "dica": "Informe o diagnóstico (nome da doença), o local e se está em tratamento"}, {"id": "13k", "item": "13", "sub": "K", "grupo": 13, "texto": "Manchas, sinais ou cicatrizes", "dica": "Informe o diagnóstico (nome da doença), o local e se está em tratamento"}, {"id": "13l", "item": "13", "sub": "L", "grupo": 13, "texto": "Outras", "dica": "Informe o diagnóstico (nome da doença), o local e se está em tratamento"}, {"id": "14a", "item": "14", "sub": "A", "grupo": 14, "texto": "Artrite", "dica": null}, {"id": "14b", "item": "14", "sub": "B", "grupo": 14, "texto": "Artrose", "dica": null}, {"id": "14c", "item": "14", "sub": "C", "grupo": 14, "texto": "Osteoporose", "dica": null}, {"id": "14d", "item": "14", "sub": "D", "grupo": 14, "texto": "Reumatismo", "dica": null}, {"id": "14e", "item": "14", "sub": "E", "grupo": 14, "texto": "Escoliose ou outro desvio de coluna", "dica": null}, {"id": "14f", "item": "14", "sub": "F", "grupo": 14, "texto": "Hérnia de disco / protrusão", "dica": null}, {"id": "14g", "item": "14", "sub": "G", "grupo": 14, "texto": "Doença do nervo ciático", "dica": null}, {"id": "14h", "item": "14", "sub": "H", "grupo": 14, "texto": "Osteomielite", "dica": null}, {"id": "14i", "item": "14", "sub": "I", "grupo": 14, "texto": "Outras", "dica": null}, {"id": "15a", "item": "15", "sub": "A", "grupo": 15, "texto": "Insuficiência renal", "dica": null}, {"id": "15b", "item": "15", "sub": "B", "grupo": 15, "texto": "Cálculo urinário", "dica": null}, {"id": "15c", "item": "15", "sub": "C", "grupo": 15, "texto": "Incontinência urinária (\"urina solta\")", "dica": null}, {"id": "15d", "item": "15", "sub": "D", "grupo": 15, "texto": "Nefrite", "dica": null}, {"id": "15e", "item": "15", "sub": "E", "grupo": 15, "texto": "Nefrose", "dica": null}, {"id": "15f", "item": "15", "sub": "F", "grupo": 15, "texto": "Hiperplasia da próstata (homem)", "dica": null}, {"id": "15g", "item": "15", "sub": "G", "grupo": 15, "texto": "Doenças dos testículos", "dica": null}, {"id": "15h", "item": "15", "sub": "H", "grupo": 15, "texto": "Varicocele", "dica": null}, {"id": "15i", "item": "15", "sub": "I", "grupo": 15, "texto": "Fimose / outras doenças do pênis (homem)", "dica": null}, {"id": "15j", "item": "15", "sub": "J", "grupo": 15, "texto": "Nódulo mamário (mulher)", "dica": null}, {"id": "15k", "item": "15", "sub": "K", "grupo": 15, "texto": "Infertilidade (esterilidade)", "dica": null}, {"id": "15l", "item": "15", "sub": "L", "grupo": 15, "texto": "Cisto de ovário (mulher)", "dica": null}, {"id": "15m", "item": "15", "sub": "M", "grupo": 15, "texto": "Transtornos menstruais (mulher)", "dica": null}, {"id": "15n", "item": "15", "sub": "N", "grupo": 15, "texto": "Endometriose (mulher)", "dica": null}, {"id": "15o", "item": "15", "sub": "O", "grupo": 15, "texto": "Mioma", "dica": null}, {"id": "15p", "item": "15", "sub": "P", "grupo": 15, "texto": "Outras", "dica": null}, {"id": "16", "item": "16", "sub": "", "grupo": 16, "texto": "Sofre(u) de problemas nos dentes ou boca?", "dica": null}, {"id": "17", "item": "17", "sub": "", "grupo": 17, "texto": "Usou ou usa aparelho ortodôntico nos dentes?", "dica": null}, {"id": "18", "item": "18", "sub": "", "grupo": 18, "texto": "Sofre(u) de problemas na articulação temporomandibular (ATM)?", "dica": null}, {"id": "19", "item": "19", "sub": "", "grupo": 19, "texto": "Sofre(u) de problemas no queixo: micrognatia (queixo pequeno) ou prognatismo (queixo para frente)?", "dica": null}, {"id": "20", "item": "20", "sub": "", "grupo": 20, "texto": "Sofre(u) de traumatismos e/ou fraturas?", "dica": null}, {"id": "21", "item": "21", "sub": "", "grupo": 21, "texto": "Sofre(u) de má formação congênita (doenças de nascença)?", "dica": null}, {"id": "22", "item": "22", "sub": "", "grupo": 22, "texto": "Sofre de sequelas de acidentes, moléstia adquirida, doenças ou má formação congênitas?", "dica": null}, {"id": "23", "item": "23", "sub": "", "grupo": 23, "texto": "Já foi submetido(a) a algum tipo de cirurgia? Teve alguma sequela?", "dica": null}, {"id": "24", "item": "24", "sub": "", "grupo": 24, "texto": "Sofre(u) de alguma doença que o(a) tenha obrigado a internar-se ou submeter-se a algum tipo de tratamento ou exame?", "dica": null}, {"id": "25", "item": "25", "sub": "", "grupo": 25, "texto": "Já foi submetido(a) a radioterapia, quimioterapia ou braquioterapia?", "dica": null}, {"id": "26", "item": "26", "sub": "", "grupo": 26, "texto": "Já foi submetido(a) a hemodiálise ou diálise peritoneal?", "dica": null}, {"id": "27", "item": "27", "sub": "", "grupo": 27, "texto": "Tem indicação de submeter-se a algum tipo de cirurgia ou transplante?", "dica": null}, {"id": "28", "item": "28", "sub": "", "grupo": 28, "texto": "Possui algum tipo de prótese ou órtese (placas, pinos, parafusos, marca-passo, outros materiais implantados)?", "dica": null}, {"id": "29a", "item": "29", "sub": "A", "grupo": 29, "texto": "Hipertensão arterial", "dica": "Informe qual parente (pai, mãe, avô, avó) e o nome da doença"}, {"id": "29b", "item": "29", "sub": "B", "grupo": 29, "texto": "Diabetes", "dica": "Informe qual parente (pai, mãe, avô, avó) e o nome da doença"}, {"id": "29c", "item": "29", "sub": "C", "grupo": 29, "texto": "Doença cardíaca", "dica": "Informe qual parente (pai, mãe, avô, avó) e o nome da doença"}, {"id": "29d", "item": "29", "sub": "D", "grupo": 29, "texto": "Doença vascular/circulatória", "dica": "Informe qual parente (pai, mãe, avô, avó) e o nome da doença"}, {"id": "29e", "item": "29", "sub": "E", "grupo": 29, "texto": "Doença pulmonar", "dica": "Informe qual parente (pai, mãe, avô, avó) e o nome da doença"}, {"id": "29f", "item": "29", "sub": "F", "grupo": 29, "texto": "Doença digestiva", "dica": "Informe qual parente (pai, mãe, avô, avó) e o nome da doença"}, {"id": "29g", "item": "29", "sub": "G", "grupo": 29, "texto": "Doença renal", "dica": "Informe qual parente (pai, mãe, avô, avó) e o nome da doença"}, {"id": "29h", "item": "29", "sub": "H", "grupo": 29, "texto": "Doença neurológica", "dica": "Informe qual parente (pai, mãe, avô, avó) e o nome da doença"}, {"id": "29i", "item": "29", "sub": "I", "grupo": 29, "texto": "Doença mental ou psiquiátrica", "dica": "Informe qual parente (pai, mãe, avô, avó) e o nome da doença"}, {"id": "29j", "item": "29", "sub": "J", "grupo": 29, "texto": "Câncer", "dica": "Informe qual parente (pai, mãe, avô, avó) e o nome da doença"}], "grade": {"1a": {"p": 4, "y0": 246.0, "y1": 261.5, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "1b": {"p": 4, "y0": 261.5, "y1": 285.5, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "1c": {"p": 4, "y0": 285.5, "y1": 300.5, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "1d": {"p": 4, "y0": 300.5, "y1": 315.5, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "1e": {"p": 4, "y0": 315.5, "y1": 330.5, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "1f": {"p": 4, "y0": 330.5, "y1": 366.5, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "2a": {"p": 4, "y0": 381.5, "y1": 405.5, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "2b": {"p": 4, "y0": 405.5, "y1": 430.0, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "2c": {"p": 4, "y0": 430.0, "y1": 454.0, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "2d": {"p": 4, "y0": 454.0, "y1": 478.0, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "2e": {"p": 4, "y0": 478.0, "y1": 502.0, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "2f": {"p": 4, "y0": 502.0, "y1": 526.5, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "2g": {"p": 4, "y0": 526.5, "y1": 550.5, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "2h": {"p": 4, "y0": 550.5, "y1": 574.5, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "2i": {"p": 4, "y0": 574.5, "y1": 599.0, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "2j": {"p": 4, "y0": 599.0, "y1": 623.0, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "2k": {"p": 4, "y0": 623.0, "y1": 647.0, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "3a": {"p": 4, "y0": 662.0, "y1": 677.0, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "3b": {"p": 4, "y0": 677.0, "y1": 692.5, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "3c": {"p": 4, "y0": 692.5, "y1": 716.5, "cols": [356.5, 397.0, 439.0, 481.0, 523.0, 565.5]}, "4": {"p": 5, "y0": 72.0, "y1": 106.0, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "5a": {"p": 5, "y0": 118.8, "y1": 134.8, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "5b": {"p": 5, "y0": 134.8, "y1": 150.8, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "5c": {"p": 5, "y0": 150.8, "y1": 167.2, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "5d": {"p": 5, "y0": 167.2, "y1": 183.2, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "5e": {"p": 5, "y0": 183.2, "y1": 199.8, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "5f": {"p": 5, "y0": 199.8, "y1": 215.8, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "5g": {"p": 5, "y0": 215.8, "y1": 231.8, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "5h": {"p": 5, "y0": 231.8, "y1": 273.5, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "6a": {"p": 5, "y0": 289.0, "y1": 305.2, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "6b": {"p": 5, "y0": 305.2, "y1": 321.2, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "6c": {"p": 5, "y0": 321.2, "y1": 337.5, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "6d": {"p": 5, "y0": 337.5, "y1": 353.8, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "6e": {"p": 5, "y0": 353.8, "y1": 385.0, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "7a": {"p": 5, "y0": 400.0, "y1": 415.5, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "7b": {"p": 5, "y0": 415.5, "y1": 431.2, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "7c": {"p": 5, "y0": 431.2, "y1": 447.8, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "7d": {"p": 5, "y0": 447.8, "y1": 463.8, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "7e": {"p": 5, "y0": 463.8, "y1": 480.2, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "7f": {"p": 5, "y0": 480.2, "y1": 496.2, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "7g": {"p": 5, "y0": 496.2, "y1": 512.2, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "7h": {"p": 5, "y0": 512.2, "y1": 528.8, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "7i": {"p": 5, "y0": 528.8, "y1": 544.8, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "7j": {"p": 5, "y0": 544.8, "y1": 573.0, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "8a": {"p": 5, "y0": 589.0, "y1": 605.0, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "8b": {"p": 5, "y0": 605.0, "y1": 621.0, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "8c": {"p": 5, "y0": 621.0, "y1": 637.5, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "8d": {"p": 5, "y0": 637.5, "y1": 664.0, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "8e": {"p": 5, "y0": 664.0, "y1": 691.5, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "8f": {"p": 5, "y0": 691.5, "y1": 718.5, "cols": [362.8, 404.8, 444.2, 486.8, 529.2, 571.5]}, "8g": {"p": 6, "y0": 72.0, "y1": 87.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "8h": {"p": 6, "y0": 87.5, "y1": 103.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "8i": {"p": 6, "y0": 103.5, "y1": 119.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "8j": {"p": 6, "y0": 119.5, "y1": 146.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "9a": {"p": 6, "y0": 162.0, "y1": 178.0, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "9b": {"p": 6, "y0": 178.0, "y1": 204.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "9c": {"p": 6, "y0": 204.5, "y1": 220.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "9d": {"p": 6, "y0": 220.5, "y1": 248.0, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "10a": {"p": 6, "y0": 263.5, "y1": 279.0, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "10b": {"p": 6, "y0": 279.0, "y1": 294.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "10c": {"p": 6, "y0": 294.5, "y1": 309.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "10d": {"p": 6, "y0": 309.5, "y1": 325.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "10e": {"p": 6, "y0": 325.5, "y1": 340.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "10f": {"p": 6, "y0": 340.5, "y1": 356.0, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "10g": {"p": 6, "y0": 356.0, "y1": 371.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "10h": {"p": 6, "y0": 371.5, "y1": 387.0, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "10i": {"p": 6, "y0": 387.0, "y1": 402.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "10j": {"p": 6, "y0": 402.5, "y1": 418.0, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "10k": {"p": 6, "y0": 418.0, "y1": 433.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "10l": {"p": 6, "y0": 433.5, "y1": 449.0, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "10m": {"p": 6, "y0": 449.0, "y1": 468.0, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "10n": {"p": 6, "y0": 468.0, "y1": 524.0, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "11a": {"p": 6, "y0": 539.5, "y1": 555.0, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "11b": {"p": 6, "y0": 555.0, "y1": 570.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "11c": {"p": 6, "y0": 570.5, "y1": 586.0, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "11d": {"p": 6, "y0": 586.0, "y1": 601.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "11e": {"p": 6, "y0": 601.5, "y1": 617.0, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "11f": {"p": 6, "y0": 617.0, "y1": 632.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "11g": {"p": 6, "y0": 632.5, "y1": 647.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "11h": {"p": 6, "y0": 647.5, "y1": 663.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "11i": {"p": 6, "y0": 663.5, "y1": 689.5, "cols": [361.5, 404.0, 446.5, 489.0, 531.5, 574.5]}, "12a": {"p": 7, "y0": 87.5, "y1": 103.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "12b": {"p": 7, "y0": 103.0, "y1": 118.5, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "12c": {"p": 7, "y0": 118.5, "y1": 153.5, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "12d": {"p": 7, "y0": 153.5, "y1": 169.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "12e": {"p": 7, "y0": 169.0, "y1": 184.5, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "12f": {"p": 7, "y0": 184.5, "y1": 200.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "12g": {"p": 7, "y0": 200.0, "y1": 215.5, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "12h": {"p": 7, "y0": 215.5, "y1": 231.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "12i": {"p": 7, "y0": 231.0, "y1": 257.5, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "13a": {"p": 7, "y0": 273.0, "y1": 289.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "13b": {"p": 7, "y0": 289.0, "y1": 305.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "13c": {"p": 7, "y0": 305.0, "y1": 321.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "13d": {"p": 7, "y0": 321.0, "y1": 337.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "13e": {"p": 7, "y0": 337.0, "y1": 353.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "13f": {"p": 7, "y0": 353.0, "y1": 369.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "13g": {"p": 7, "y0": 369.0, "y1": 385.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "13h": {"p": 7, "y0": 385.0, "y1": 401.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "13i": {"p": 7, "y0": 401.0, "y1": 417.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "13j": {"p": 7, "y0": 417.0, "y1": 433.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "13k": {"p": 7, "y0": 433.0, "y1": 449.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "13l": {"p": 7, "y0": 449.0, "y1": 481.5, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "14a": {"p": 7, "y0": 498.5, "y1": 514.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "14b": {"p": 7, "y0": 514.0, "y1": 529.5, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "14c": {"p": 7, "y0": 529.5, "y1": 545.5, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "14d": {"p": 7, "y0": 545.5, "y1": 561.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "14e": {"p": 7, "y0": 561.0, "y1": 577.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "14f": {"p": 7, "y0": 577.0, "y1": 592.5, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "14g": {"p": 7, "y0": 592.5, "y1": 608.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "14h": {"p": 7, "y0": 608.0, "y1": 623.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "14i": {"p": 7, "y0": 623.0, "y1": 650.0, "cols": [376.5, 419.0, 461.5, 504.0, 546.5, 574.0]}, "15a": {"p": 8, "y0": 87.5, "y1": 103.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "15b": {"p": 8, "y0": 103.5, "y1": 119.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "15c": {"p": 8, "y0": 119.5, "y1": 135.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "15d": {"p": 8, "y0": 135.5, "y1": 151.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "15e": {"p": 8, "y0": 151.5, "y1": 167.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "15f": {"p": 8, "y0": 167.5, "y1": 183.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "15g": {"p": 8, "y0": 183.5, "y1": 199.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "15h": {"p": 8, "y0": 199.5, "y1": 215.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "15i": {"p": 8, "y0": 215.5, "y1": 231.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "15j": {"p": 8, "y0": 231.5, "y1": 247.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "15k": {"p": 8, "y0": 247.5, "y1": 263.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "15l": {"p": 8, "y0": 263.5, "y1": 279.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "15m": {"p": 8, "y0": 279.5, "y1": 295.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "15n": {"p": 8, "y0": 295.5, "y1": 311.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "15o": {"p": 8, "y0": 311.5, "y1": 327.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "15p": {"p": 8, "y0": 327.5, "y1": 354.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "16": {"p": 8, "y0": 354.5, "y1": 385.0, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "17": {"p": 8, "y0": 385.0, "y1": 415.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "18": {"p": 8, "y0": 415.5, "y1": 450.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "19": {"p": 8, "y0": 450.5, "y1": 485.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "20": {"p": 8, "y0": 485.5, "y1": 516.0, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "21": {"p": 8, "y0": 516.0, "y1": 546.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "22": {"p": 8, "y0": 546.5, "y1": 581.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "23": {"p": 8, "y0": 581.5, "y1": 616.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "24": {"p": 8, "y0": 616.5, "y1": 651.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "25": {"p": 8, "y0": 651.5, "y1": 686.5, "cols": [361.5, 404.0, 446.5, 489.5, 532.0, 574.5]}, "26": {"p": 9, "y0": 72.0, "y1": 102.5, "cols": [362.0, 404.0, 446.5, 489.5, 532.0, 574.5]}, "27": {"p": 9, "y0": 102.5, "y1": 137.5, "cols": [362.0, 404.0, 446.5, 489.5, 532.0, 574.5]}, "28": {"p": 9, "y0": 137.5, "y1": 172.5, "cols": [362.0, 404.0, 446.5, 489.5, 532.0, 574.5]}, "29a": {"p": 9, "y0": 188.0, "y1": 203.5, "cols": [362.0, 404.0, 446.5, 489.5, 532.0, 574.5]}, "29b": {"p": 9, "y0": 203.5, "y1": 219.0, "cols": [362.0, 404.0, 446.5, 489.5, 532.0, 574.5]}, "29c": {"p": 9, "y0": 219.0, "y1": 234.5, "cols": [362.0, 404.0, 446.5, 489.5, 532.0, 574.5]}, "29d": {"p": 9, "y0": 234.5, "y1": 250.0, "cols": [362.0, 404.0, 446.5, 489.5, 532.0, 574.5]}, "29e": {"p": 9, "y0": 250.0, "y1": 265.5, "cols": [362.0, 404.0, 446.5, 489.5, 532.0, 574.5]}, "29f": {"p": 9, "y0": 265.5, "y1": 281.0, "cols": [362.0, 404.0, 446.5, 489.5, 532.0, 574.5]}, "29g": {"p": 9, "y0": 281.0, "y1": 296.5, "cols": [362.0, 404.0, 446.5, 489.5, 532.0, 574.5]}, "29h": {"p": 9, "y0": 296.5, "y1": 311.5, "cols": [362.0, 404.0, 446.5, 489.5, 532.0, 574.5]}, "29i": {"p": 9, "y0": 311.5, "y1": 327.0, "cols": [362.0, 404.0, 446.5, 489.5, 532.0, 574.5]}, "29j": {"p": 9, "y0": 327.0, "y1": 342.5, "cols": [362.0, 404.0, 446.5, 489.5, 532.0, 574.5]}}, "medidas": {"30": {"p": 9, "y0": 342.5, "y1": 373.0, "cols": [362.0, 404.0, 446.5, 489.5, 532.0, 574.5]}, "31": {"p": 9, "y0": 373.0, "y1": 404.0, "cols": [362.0, 404.0, 446.5, 489.5, 532.0, 574.5]}, "32": {"p": 9, "y0": 404.0, "y1": 434.0, "cols": [362.0, 404.0, 446.5, 489.5, 532.0, 574.5]}, "33": {"p": 9, "y0": 434.0, "y1": 464.5, "cols": [362.0, 404.0, 446.5, 489.5, 532.0, 574.5]}}};
+if (typeof module!=="undefined") module.exports=DADOS_UNIMED;
+</script>
+<script>// Motor de preenchimento dos formulários de inclusão - Unimed Lorena
+// Funciona no navegador (PDFLib global) e no Node (require('pdf-lib')).
+(function (root) {
+  const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  const MINUSC = ['de', 'da', 'do', 'das', 'dos', 'e', 'di', 'du'];
+
+  const FIXO = {
+    empresa: 'Cucinare Pro Alimentação Ltda',
+    intermediarioNome: 'Wlademir Cavicchioli Filho',
+    intermediarioCpf: '088.045.738-25',
+    cidade: 'Lorena/SP',
+  };
+
+  function nomeProprio(s) {
+    return (s || '').trim().replace(/\s+/g, ' ').toLowerCase().split(' ')
+      .map((w, i) => (i > 0 && MINUSC.includes(w)) ? w : w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
+  function soDigitos(s) { return (s || '').replace(/\D/g, ''); }
+  function fmtCPF(s) { const d = soDigitos(s); return d.length === 11 ? d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : (s || '').trim(); }
+  function fmtCEP(s) { const d = soDigitos(s); return d.length === 8 ? d.replace(/(\d{5})(\d{3})/, '$1-$2') : (s || '').trim(); }
+  function fmtCNS(s) { const d = soDigitos(s); return d.length === 15 ? d.replace(/(\d{3})(\d{4})(\d{4})(\d{4})/, '$1 $2 $3 $4') : (s || '').trim(); }
+  function fmtTel(s) {
+    const d = soDigitos(s);
+    if (d.length === 11) return d.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    if (d.length === 10) return d.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+    return (s || '').trim();
+  }
+  // ISO (aaaa-mm-dd) -> partes
+  function partes(iso) { const [a, m, d] = (iso || '').split('-'); return { d, m, a }; }
+  function fmtData(iso) { const p = partes(iso); return p.d ? `${p.d}/${p.m}/${p.a}` : ''; }
+  function idade(nascIso, refIso) {
+    const n = partes(nascIso), r = partes(refIso);
+    let i = +r.a - +n.a; if (+r.m < +n.m || (+r.m === +n.m && +r.d < +n.d)) i--; return i;
+  }
+  function fmtAltura(v) {
+    let s = String(v || '').trim().replace('.', ',');
+    if (/^\d{3}$/.test(s)) s = s[0] + ',' + s.slice(1); // 172 -> 1,72
+    return s;
+  }
+  // Texto pode conter caracteres fora do WinAnsi (emoji etc.) -> remove
+  function limpa(s) { return String(s == null ? '' : s).replace(/[^\x20-\x7E -ÿ–—‘’“”•…°ºª]/g, ''); }
+
+  async function gerarTodos(dados, arquivos, lib) {
+    const { PDFDocument, StandardFonts, rgb } = lib;
+    const AZUL = rgb(0.05, 0.12, 0.45);
+
+    function ctx(doc, fontes) {
+      const pages = doc.getPages();
+      const H = (pi) => pages[pi].getHeight();
+      function txt(pi, s, x, base, size, o = {}) {
+        s = limpa(s); if (!s) return;
+        const f = o.bold ? fontes.b : fontes.r;
+        let sz = size;
+        if (o.maxW) while (f.widthOfTextAtSize(s, sz) > o.maxW && sz > 5) sz -= 0.25;
+        let w = f.widthOfTextAtSize(s, sz);
+        if (o.maxW && w > o.maxW) { while (s.length > 1 && f.widthOfTextAtSize(s + '…', sz) > o.maxW) s = s.slice(0, -1); s += '…'; w = f.widthOfTextAtSize(s, sz); }
+        const px = o.center ? x - w / 2 : x;
+        pages[pi].drawText(s, { x: px, y: H(pi) - base, size: sz, font: f, color: o.cor || AZUL });
+      }
+      function xis(pi, x0, t0, x1, t1) {
+        const p = pages[pi], h = H(pi);
+        p.drawLine({ start: { x: x0, y: h - t0 }, end: { x: x1, y: h - t1 }, thickness: 1.4, color: AZUL });
+        p.drawLine({ start: { x: x0, y: h - t1 }, end: { x: x1, y: h - t0 }, thickness: 1.4, color: AZUL });
+      }
+      function img(pi, im, x, top, hgt) {
+        const w = im.width * hgt / im.height;
+        pages[pi].drawImage(im, { x, y: H(pi) - top - hgt, width: w, height: hgt });
+      }
+      function branco(pi, x0, t0, x1, t1) {
+        pages[pi].drawRectangle({ x: x0, y: H(pi) - t1, width: x1 - x0, height: t1 - t0, color: rgb(1, 1, 1) });
+      }
+      return { txt, xis, img, branco, pages };
+    }
+    async function fontes(doc) {
+      return { r: await doc.embedFont(StandardFonts.Helvetica), b: await doc.embedFont(StandardFonts.HelveticaBold) };
+    }
+
+    const T = dados.titular, deps = (dados.dependentes || []).filter(d => d && d.nome);
+    const data = dados.data; const dp = partes(data);
+    const nomeT = nomeProprio(T.nome);
+    const proponentes = [T, ...deps];
+
+    // ================= DECLARAÇÃO DE SAÚDE =================
+    const ds = await PDFDocument.load(arquivos.saude);
+    const fs1 = await fontes(ds); const c = ctx(ds, fs1);
+    const assin = await ds.embedPng(arquivos.assinatura);
+    const localData = `${FIXO.cidade}, ${fmtData(data)}`;
+    // pág 2 - titular
+    c.txt(1, localData, 100, 266.5, 10, { maxW: 225 });
+    c.txt(1, nomeT, 79, 294.5, 10, { maxW: 250 });
+    c.txt(1, fmtCPF(T.cpf), 68, 322.5, 10);
+    // pág 2 - intermediário (fixo)
+    c.txt(1, localData, 403, 266.5, 10, { maxW: 162 });
+    c.txt(1, FIXO.intermediarioNome, 382, 294.5, 10, { maxW: 184 });
+    c.txt(1, FIXO.intermediarioCpf, 371, 322.5, 10);
+    c.img(1, assin, 412, 331, 35);
+    // pág 3 - optou por não utilizar médico orientador + local/data + empresa
+    c.xis(2, 38.2, 331.2, 48.6, 342.2);
+    c.txt(2, FIXO.cidade, 458.4, 405, 10, { center: true, maxW: 64 });
+    c.txt(2, dp.d, 506.4, 405, 10, { center: true });
+    c.txt(2, dp.m, 530.7, 405, 10, { center: true });
+    c.txt(2, dp.a, 555.1, 405, 9.5, { center: true });
+    c.txt(2, FIXO.empresa, 96, 677.5, 11, { maxW: 430 });
+    // pág 4 - nomes e nascimentos
+    const linhasNome = [79.3, 99.9, 117.3, 134.7, 152.1];
+    const barras = [[463.2, 494.4], [462.8, 492.9], [462.8, 492.9], [462.8, 492.9], [460.2, 491.5]];
+    proponentes.forEach((p, i) => {
+      if (i > 4) return;
+      c.txt(3, nomeProprio(p.nome), i === 0 ? 84 : 107, linhasNome[i], 9.5, { maxW: i === 0 ? 292 : 270 });
+      const n = partes(p.nascimento), [b1, b2] = barras[i];
+      c.txt(3, n.d, (b1 + 448) / 2, linhasNome[i], 9.5, { center: true });
+      c.txt(3, n.m, (b1 + 5 + b2) / 2 + 0.5, linhasNome[i], 9.5, { center: true });
+      c.txt(3, n.a, b2 + 6, linhasNome[i], 9.5);
+    });
+    // questionário: S/N em todas as linhas, para cada proponente
+    const G = arquivos.dados.grade;
+    for (const q of arquivos.dados.perguntas) {
+      const g = G[q.id]; const resp = (dados.respostas || {})[q.id] || [];
+      proponentes.forEach((p, i) => {
+        if (i > 4) return;
+        const r = resp[i]; if (r !== 'S' && r !== 'N') return;
+        const cx = (g.cols[i] + g.cols[i + 1]) / 2, cy = (g.y0 + g.y1) / 2;
+        c.txt(g.p - 1, r, cx, cy + 3.6, 10.5, { center: true, bold: true });
+      });
+    }
+    // 30 peso, 31 altura, 32 idade (33 IMC fica em branco)
+    const M = arquivos.dados.medidas;
+    proponentes.forEach((p, i) => {
+      if (i > 4) return;
+      const vals = { '30': String(p.peso || '').replace(/[.,].*$/, ''), '31': fmtAltura(p.altura), '32': String(idade(p.nascimento, data)) };
+      for (const k of ['30', '31', '32']) {
+        const g = M[k]; c.txt(g.p - 1, vals[k], (g.cols[i] + g.cols[i + 1]) / 2, (g.y0 + g.y1) / 2 + 4, 11, { center: true, bold: true });
+      }
+    });
+    // quadro de especificação (pág 9: 10 linhas, pág 10: 16 linhas)
+    const T9 = { pi: 8, cols: [25, 66.5, 121.5, 205, 426.5, 557.5], linhas: [553.5, 568, 582, 596.5, 611, 625, 639.5, 654, 668.5, 682.5, 697] };
+    const T10 = { pi: 9, cols: [54, 95.5, 153.5, 234, 470, 560], linhas: [100.5, 115, 129.5, 143.5, 158, 172.5, 186.5, 201, 215.5, 230, 244.5, 258.5, 273, 287.5, 302, 316.5, 330.5] };
+    const slots = [];
+    for (const t of [T9, T10]) for (let k = 0; k < t.linhas.length - 1; k++) slots.push({ t, y0: t.linhas[k], y1: t.linhas[k + 1] });
+    const ordem = {}; arquivos.dados.perguntas.forEach((q, i) => ordem[q.id] = i);
+    const esp = (dados.especificacoes || []).slice().sort((a, b) => (ordem[a.q] - ordem[b.q]) || (a.prop - b.prop));
+    const f = fs1.r; const SZ = 7.5;
+    function quebra(s, maxW) {
+      const pal = limpa(s).trim().replace(/\s+/g, ' ').split(' '); const out = []; let lin = '';
+      for (const w of pal) { const t = lin ? lin + ' ' + w : w; if (f.widthOfTextAtSize(t, SZ) <= maxW) lin = t; else { if (lin) out.push(lin); lin = w; } }
+      if (lin) out.push(lin); return out.length ? out : [''];
+    }
+    let si = 0; const sobra = [];
+    for (const e of esp) {
+      const q = arquivos.dados.perguntas.find(x => x.id === e.q);
+      const prop = e.prop === 0 ? 'TITULAR' : `DEPENDENTE ${e.prop}`;
+      const t0 = slots[si] ? slots[si].t : T10;
+      const linhas = quebra(e.texto, t0.cols[4] - t0.cols[3] - 6);
+      linhas.forEach((ln, k) => {
+        const s = slots[si++]; if (!s) { sobra.push(ln); return; }
+        const C = s.t.cols, base = s.y1 - 4;
+        if (k === 0) {
+          c.txt(s.t.pi, q.item, (C[0] + C[1]) / 2, base, SZ + 0.5, { center: true });
+          c.txt(s.t.pi, q.sub, (C[1] + C[2]) / 2, base, SZ + 0.5, { center: true });
+          c.txt(s.t.pi, prop, (C[2] + C[3]) / 2, base, SZ, { center: true, maxW: C[3] - C[2] - 4 });
+          c.txt(s.t.pi, e.periodo, (C[4] + C[5]) / 2, base, SZ + 0.5, { center: true, maxW: C[5] - C[4] - 4 });
+        }
+        c.txt(s.t.pi, ln, C[3] + 3, base, SZ, { maxW: C[4] - C[3] - 4 });
+      });
+    }
+    // pág 11 - data
+    c.txt(10, dp.d, 444.7, 520, 10.5, { center: true });
+    c.txt(10, dp.m, 478.1, 520, 10.5, { center: true });
+    c.txt(10, dp.a, 517.4, 520, 10.5, { center: true });
+    const saude = await ds.save();
+
+    // ================= DECLARAÇÃO MPS / GLC =================
+    const gl = await PDFDocument.load(arquivos.glc);
+    const c2 = ctx(gl, await fontes(gl));
+    c2.txt(0, nomeT, 70, 254.6, 10.5, { maxW: 342 });
+    c2.txt(0, (T.rg || '').trim(), 222, 274.6, 10.5, { maxW: 127 });
+    c2.txt(0, fmtCPF(T.cpf), 68, 294.7, 10.5, { maxW: 113 });
+    c2.txt(0, String(+dp.d), 324.6, 434, 10.5, { center: true });
+    c2.txt(0, MESES[+dp.m - 1], 415.7, 434, 10.5, { center: true });
+    c2.txt(0, dp.a, 506.8, 434, 10.5, { center: true });
+    const glc = await gl.save();
+
+    // ================= MOVIMENTAÇÃO CADASTRAL =================
+    const mv = await PDFDocument.load(arquivos.mov);
+    // 4º dependente: acrescenta uma cópia da pág. 2 (quadro "DEP. 4" é usado)
+    if (deps.length >= 4) { const [cp] = await mv.copyPages(mv, [1]); mv.addPage(cp); }
+    const fm = await fontes(mv); const c3 = ctx(mv, fm);
+    const carimbo = await mv.embedPng(arquivos.carimbo);
+    c3.xis(0, 58.5, 120.3, 65.4, 127.2);            // INCLUSÃO
+    c3.xis(0, 207.6, 147.6, 214.5, 154.5);          // TITULAR
+    if (deps.length) c3.xis(0, 314.4, 147.6, 321.3, 154.5); // DEPENDENTE
+    const S = 8.5, X1 = 55, X2 = 230.5, X3 = 408;
+    c3.txt(0, nomeT, X1, 207, 10, { maxW: 515 });
+    c3.txt(0, [T.endereco, T.numero, T.complemento].filter(Boolean).map(s => String(s).trim()).join(', '), X1, 240, S + 0.5, { maxW: 515 });
+    c3.txt(0, T.bairro, X1, 266.8, S, { maxW: 168 }); c3.txt(0, T.cidade, X2, 266.8, S, { maxW: 168 }); c3.txt(0, fmtCEP(T.cep), X3, 266.8, S, { maxW: 165 });
+    c3.txt(0, (T.email || '').trim().toLowerCase(), X1, 287, S, { maxW: 170 }); c3.txt(0, fmtTel(T.telefone), X2, 287, S, { maxW: 168 }); c3.txt(0, T.nacionalidade, X3, 287, S, { maxW: 165 });
+    c3.txt(0, fmtCPF(T.cpf), X1, 311.5, S, { maxW: 168 }); c3.txt(0, T.rg, X2, 311.5, S, { maxW: 168 }); c3.txt(0, fmtCNS(T.cns), X3, 311.5, S, { maxW: 165 });
+    c3.txt(0, T.estadoCivil, X1, 340, S, { maxW: 168 }); c3.txt(0, T.sexo, X2, 340, S, { maxW: 168 }); c3.txt(0, fmtData(T.nascimento), X3, 340, S, { maxW: 165 });
+    c3.txt(0, nomeProprio(T.nomeMae), X1, 360.5, S, { maxW: 345 }); c3.txt(0, fmtData(T.admissao), X3, 360.5, S, { maxW: 165 });
+    c3.txt(0, T.profissao, X1, 390.5, S, { maxW: 170 });
+    // quadros de dependentes: [página, topo "DEP.", cpf, estado civil, mãe, parentesco]
+    const blocos = [[0, 555.6, 585.2, 609.2, 633.2, 653.2], [1, 68.7, 98.4, 128.0, 157.7, 187.4], [1, 335.3, 365.0, 384.9, 414.5, 454.0], [2, 335.3, 365.0, 384.9, 414.5, 454.0]];
+    const D1 = 55, D2 = 243.5, D3 = 411;
+    deps.slice(0, 4).forEach((d, i) => {
+      const [pi, t, cpf, ec, mae, par] = blocos[i]; const oc = i >= 2 ? 12.6 : 14.5;
+      if (i === 2) { c3.branco(pi, 59.5, 344.5, 67.6, 353.6); c3.txt(pi, '3', 63.55, 352.4, 8, { center: true, bold: true, cor: rgb(0, 0, 0) }); }
+      c3.txt(pi, nomeProprio(d.nome), 86, t + 21.5, 10, { maxW: 485 });
+      c3.txt(pi, fmtCPF(d.cpf), D1, cpf + oc, S, { maxW: 182 }); c3.txt(pi, d.rg, D2, cpf + oc, S, { maxW: 162 }); c3.txt(pi, fmtCNS(d.cns), D3, cpf + oc, S, { maxW: 163 });
+      c3.txt(pi, d.estadoCivil, D1, ec + 14.5, S, { maxW: 182 }); c3.txt(pi, d.sexo, D2, ec + 14.5, S, { maxW: 162 }); c3.txt(pi, fmtData(d.nascimento), D3, ec + 14.5, S, { maxW: 163 });
+      c3.txt(pi, nomeProprio(d.nomeMae), D1, mae + 13.5, S, { maxW: 348 }); c3.txt(pi, d.nacionalidade, D3, mae + 13.5, S, { maxW: 163 });
+      c3.txt(pi, d.parentesco, D1, par + 13.5, S, { maxW: 348 });
+    });
+    // data por extenso + carimbo/assinatura da empresa (pág 2 e, se houver, cópia)
+    for (let pi = 1; pi < mv.getPageCount(); pi++) {
+      c3.txt(pi, String(+dp.d), 421, 634.2, 10, { center: true });
+      c3.txt(pi, MESES[+dp.m - 1], 480.6, 634.2, 10, { center: true });
+      c3.txt(pi, dp.a, 547.4, 634.2, 10, { center: true, maxW: 30 });
+      c3.img(pi, carimbo, 129, 594, 80);
+    }
+    const mov = await mv.save();
+
+    return { saude, glc, mov, sobra };
+  }
+
+  const API = { gerarTodos, nomeProprio, fmtCPF, fmtData, idade, partes, FIXO };
+  if (typeof module !== 'undefined') module.exports = API; else root.MotorUnimed = API;
+})(this);
+</script>
+<script>
+const D = DADOS_UNIMED, M = MotorUnimed;
+const ECIVIL = ['Solteiro(a)','Casado(a)','União estável','Divorciado(a)','Separado(a)','Viúvo(a)'];
+const PARENT = ['Cônjuge','Companheiro(a)','Filho(a)','Enteado(a)','Menor sob guarda','Pai','Mãe'];
+const hoje = (()=>{const d=new Date();const z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`})();
+
+const vazioPessoa = () => ({nome:'',cpf:'',rg:'',cns:'',nascimento:'',sexo:'',estadoCivil:'',nomeMae:'',nacionalidade:'Brasileira',peso:'',altura:''});
+let S = {step:0, data:hoje,
+  titular:{...vazioPessoa(), email:'',telefone:'',endereco:'',numero:'',complemento:'',bairro:'',cidade:'',cep:'',admissao:'',profissao:''},
+  deps:[], resp:{}, esp:{}, leu:false};
+try{const s=sessionStorage.getItem('ficha-unimed'); if(s) S={...S,...JSON.parse(s)}; }catch(e){}
+function salvar(){try{sessionStorage.setItem('ficha-unimed',JSON.stringify(S))}catch(e){}}
+
+function nprop(){return 1+S.deps.length}
+function ajustaResp(){
+  for(const q of D.perguntas){
+    const a=S.resp[q.id]||[]; const n=nprop();
+    while(a.length<n) a.push('N'); a.length=n; S.resp[q.id]=a;
+  }
+  for(const k of Object.keys(S.esp)){const p=+k.split('|')[1]; if(p>=nprop()||S.resp[k.split('|')[0]][p]!=='S') delete S.esp[k];}
+}
+ajustaResp();
+
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function pnome(i){ if(i===0) return 'Você (titular)'; const n=(S.deps[i-1].nome||'').trim().split(' ')[0]; return n?`${M.nomeProprio(n)} (dep. ${i})`:`Dependente ${i}`; }
+
+/* ---------- campos ---------- */
+function campo(obj,path,k,label,o={}){
+  const id=`${path}.${k}`, v=obj[k]??'', req=o.req!==false;
+  const lab=`<label for="${id}">${label}${req?' <span class="req">*</span>':''}</label>`;
+  let ctl;
+  if(o.opts) ctl=`<select id="${id}" data-p="${path}" data-k="${k}"><option value="">Selecione</option>${o.opts.map(x=>`<option${x===v?' selected':''}>${esc(x)}</option>`).join('')}</select>`;
+  else ctl=`<input id="${id}" data-p="${path}" data-k="${k}" type="${o.type||'text'}" value="${esc(v)}"${o.ph?` placeholder="${esc(o.ph)}"`:''}${o.im?` inputmode="${o.im}"`:''}${o.mask?` data-mask="${o.mask}"`:''}${o.auto?` autocomplete="${o.auto}"`:''}${o.max?` max="${o.max}"`:''}>`;
+  return `<div class="f ${o.cls||'s3'}">${lab}${ctl}${o.hint?`<span class="hint">${o.hint}</span>`:''}</div>`;
+}
+function objDe(path){ return path==='t'?S.titular:S.deps[+path.slice(1)]; }
+
+const MASK={
+  cpf:v=>{v=v.replace(/\D/g,'').slice(0,11);return v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})\.(\d{3})(\d)/,'$1.$2.$3').replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/,'$1.$2.$3-$4')},
+  cep:v=>{v=v.replace(/\D/g,'').slice(0,8);return v.replace(/(\d{5})(\d)/,'$1-$2')},
+  tel:v=>{v=v.replace(/\D/g,'').slice(0,11);if(v.length>10)return v.replace(/(\d{2})(\d{5})(\d{0,4})/,'($1) $2-$3');return v.replace(/(\d{2})(\d{0,4})(\d{0,4})/,(m,a,b,c)=>`(${a}) ${b}${c?'-'+c:''}`)},
+  cns:v=>{v=v.replace(/\D/g,'').slice(0,15);return v.replace(/(\d{3})(\d{0,4})(\d{0,4})(\d{0,4})/,(m,a,b,c,d)=>[a,b,c,d].filter(Boolean).join(' '))},
+  mesano:v=>{v=v.replace(/\D/g,'').slice(0,6);return v.length>2?v.slice(0,2)+'/'+v.slice(2):v},
+  altura:v=>{v=v.replace(/[^\d,.]/g,'').replace('.',',');const d=v.replace(/\D/g,'');if(/^\d{3}$/.test(d)&&!v.includes(','))return d[0]+','+d.slice(1);return v.slice(0,4)},
+  peso:v=>v.replace(/\D/g,'').slice(0,3)
+};
+
+function pessoaCampos(o,path,tit){
+  let h='<div class="grid">';
+  h+=campo(o,path,'nome','Nome completo, sem abreviar',{cls:'s6',auto:tit?'name':'off'});
+  h+=campo(o,path,'cpf','CPF',{cls:'s2',im:'numeric',mask:'cpf',ph:'000.000.000-00'});
+  h+=campo(o,path,'rg','RG (identidade)',{cls:'s2'});
+  h+=campo(o,path,'cns','Cartão Nacional de Saúde (CNS)',{cls:'s2',im:'numeric',mask:'cns',ph:'000 0000 0000 0000',hint:'15 números, no cartão do SUS ou no app Meu SUS Digital'});
+  h+=campo(o,path,'nascimento','Data de nascimento',{cls:'s2 half',type:'date',max:hoje});
+  h+=campo(o,path,'sexo','Sexo',{cls:'s2 half',opts:['Masculino','Feminino']});
+  h+=campo(o,path,'estadoCivil','Estado civil',{cls:'s2',opts:ECIVIL});
+  h+=campo(o,path,'nomeMae','Nome completo da mãe',{cls:tit?'s6':'s4'});
+  if(!tit) h+=campo(o,path,'nacionalidade','Nacionalidade',{cls:'s2'});
+  if(!tit) h+=campo(o,path,'parentesco','Parentesco com você',{cls:'s2',opts:PARENT});
+  h+=campo(o,path,'peso','Peso (kg)',{cls:'s2 half',im:'numeric',mask:'peso',ph:'75',hint:'Sem casas decimais'});
+  h+=campo(o,path,'altura','Altura (m)',{cls:'s2 half',im:'decimal',mask:'altura',ph:'1,72'});
+  return h+'</div>';
+}
+
+/* ---------- etapas ---------- */
+function vDados(){
+  const t=S.titular;
+  return `<section class="card"><h2>Seus dados</h2>${pessoaCampos(t,'t',true)}</section>
+  <section class="card"><h2>Contato e endereço</h2><div class="grid">
+  ${campo(t,'t','email','E-mail',{cls:'s3',type:'email',auto:'email',im:'email'})}
+  ${campo(t,'t','telefone','Telefone com DDD',{cls:'s3',type:'tel',mask:'tel',im:'tel',auto:'tel',ph:'(12) 99999-9999'})}
+  ${campo(t,'t','cep','CEP',{cls:'s2',im:'numeric',mask:'cep',ph:'00000-000'})}
+  ${campo(t,'t','endereco','Rua / avenida',{cls:'s4',auto:'address-line1'})}
+  ${campo(t,'t','numero','Número',{cls:'s2 half'})}
+  ${campo(t,'t','complemento','Complemento',{cls:'s2 half',req:false})}
+  ${campo(t,'t','bairro','Bairro',{cls:'s2'})}
+  ${campo(t,'t','cidade','Cidade',{cls:'s3'})}
+  ${campo(t,'t','nacionalidade','Nacionalidade',{cls:'s3'})}
+  </div></section>
+  <section class="card"><h2>Trabalho</h2><div class="grid">
+  ${campo(t,'t','admissao','Data de admissão na empresa',{cls:'s3',type:'date',max:hoje})}
+  ${campo(t,'t','profissao','Profissão',{cls:'s3'})}
+  </div></section>`;
+}
+function vDeps(){
+  let h=`<section class="card"><h2>Dependentes</h2><p class="lead" style="margin:0">Inclua até 4 dependentes. Se você vai entrar sozinho no plano, é só continuar.</p></section>`;
+  S.deps.forEach((d,i)=>{
+    h+=`<section class="card"><div class="dephead"><span class="tag">Dependente ${i+1}</span><button type="button" class="btn ghost" data-rm="${i}">Remover</button></div>${pessoaCampos(d,'d'+i,false)}</section>`;
+  });
+  if(S.deps.length<4) h+=`<button type="button" class="btn" id="adddep">+ Adicionar dependente</button>`;
+  return h;
+}
+function vSaude(){
+  const n=nprop();
+  let h=`<section class="card"><h2>Declaração de saúde</h2>
+  <p class="lead" style="margin:0">Todas as respostas começam como <b>N</b> (não). Leia cada pergunta e toque no nome da pessoa para mudar para <b>S</b> (sim). Para cada S, informe o diagnóstico e desde quando.</p>
+  <p class="note" style="margin:0">A Unimed exige que todas as doenças ou lesões que você conhece sejam declaradas. Omitir pode levar ao cancelamento do plano.</p>
+  </section>`;
+  let gAtual=null;
+  for(const q of D.perguntas){
+    if(q.grupo!==gAtual){
+      if(gAtual!==null) h+='</div>';
+      gAtual=q.grupo;
+      const single=!q.sub;
+      h+=`<div class="qgroup"><h3><span class="n">${q.item}</span><span>${esc(single&&q.grupo>=16?'Pergunta '+q.item:D.grupos[q.grupo])}</span></h3>`;
+    }
+    const r=S.resp[q.id];
+    h+=`<div class="q"><div class="lbl"><span class="sub">${q.sub?q.sub.toLowerCase():''}</span><span>${esc(q.texto)}</span></div><div class="answers">`;
+    for(let i=0;i<n;i++) h+=`<button type="button" class="ans" data-q="${q.id}" data-i="${i}" aria-pressed="${r[i]==='S'}">${esc(pnome(i))}<b>${r[i]}</b></button>`;
+    h+='</div>';
+    for(let i=0;i<n;i++) if(r[i]==='S'){
+      const k=`${q.id}|${i}`, e=S.esp[k]||{texto:'',periodo:''};
+      h+=`<div class="spec"><span class="who">${esc(pnome(i))} · item ${q.item}${q.sub?' '+q.sub:''}</span>
+      <div class="f"><label for="e-${k}">${esc(q.dica||'Informe o diagnóstico (nome da doença) e se está em tratamento')} <span class="req">*</span></label><textarea id="e-${k}" data-esp="${k}" data-f="texto" maxlength="160" rows="2">${esc(e.texto)}</textarea></div>
+      <div class="f"><label for="p-${k}">Diagnóstico (mês/ano) <span class="req">*</span></label><input id="p-${k}" data-esp="${k}" data-f="periodo" data-mask="mesano" inputmode="numeric" placeholder="03/2017" value="${esc(e.periodo)}"></div></div>`;
+    }
+    h+='</div>';
+  }
+  h+='</div>';
+  h+=`<section class="card"><label class="check"><input type="checkbox" id="leu"${S.leu?' checked':''}> <span>Li todas as perguntas acima, para mim e para cada dependente, e as respostas estão corretas.</span></label></section>`;
+  return h;
+}
+function vGerar(){
+  const nS=Object.values(S.resp).flat().filter(x=>x==='S').length;
+  return `<section class="card"><h2>Conferência</h2>
+  <dl class="sum">
+    <dt>Titular</dt><dd>${esc(M.nomeProprio(S.titular.nome))}</dd>
+    <dt>Dependentes</dt><dd class="num">${S.deps.length}</dd>
+    <dt>Respostas S na declaração</dt><dd class="num">${nS}</dd>
+    <dt>Data dos formulários</dt><dd class="num">${M.fmtData(S.data)}</dd>
+  </dl></section>
+  <section class="card"><h2>Baixar os formulários</h2>
+  <p class="note" style="margin:0">O arquivo completo já traz os três formulários na ordem certa. No celular, o PDF pode abrir numa nova tela: use o botão de compartilhar ou salvar para guardar.</p>
+  <div class="files">
+    <div class="file"><span><b>Todos os formulários</b> · um PDF só</span><button type="button" class="btn primary" data-dl="tudo">Baixar</button></div>
+    <div class="file"><span>Declaração de Saúde (11 páginas)</span><button type="button" class="btn" data-dl="saude">Baixar</button></div>
+    <div class="file"><span>Declaração Manual MPS / GLC</span><button type="button" class="btn" data-dl="glc">Baixar</button></div>
+    <div class="file"><span>Movimentação Cadastral</span><button type="button" class="btn" data-dl="mov">Baixar</button></div>
+  </div>
+  <div id="dlmsg" class="note" role="status"></div>
+  </section>
+  <section class="card"><h2>Depois de baixar</h2>
+  <ol class="steps-list">
+    <li>Imprima todos os formulários.</li>
+    <li>Na <b>Declaração de Saúde</b>: rubrique a pág. 1 e assine em todas as outras páginas, no campo do titular.</li>
+    <li>Assine a <b>Declaração MPS/GLC</b> e a <b>Movimentação Cadastral</b> (campo "Beneficiário Titular").</li>
+    <li>Digitalize mantendo a ordem das páginas e entregue ao RH junto com os documentos pedidos.</li>
+  </ol>
+  <button type="button" class="btn ghost" id="limpar">Apagar meus dados desta tela</button>
+  </section>`;
+}
+const VIEWS=[vDados,vDeps,vSaude,vGerar];
+
+/* ---------- validação ---------- */
+function cpfOk(c){c=(c||'').replace(/\D/g,'');if(c.length!==11||/^(\d)\1+$/.test(c))return false;
+  for(let t=9;t<11;t++){let s=0;for(let i=0;i<t;i++)s+=+c[i]*(t+1-i);if(((s*10)%11)%10!==+c[t])return false}return true}
+function validar(step){
+  const e=[], bad=[];
+  const req=(o,path,k,nome)=>{ if(!String(o[k]??'').trim()){e.push(nome);bad.push(`${path}.${k}`)} };
+  const pessoa=(o,path,quem,tit)=>{
+    req(o,path,'nome',`${quem}: nome`);
+    if(!cpfOk(o.cpf)){e.push(`${quem}: CPF inválido`);bad.push(`${path}.cpf`)}
+    req(o,path,'rg',`${quem}: RG`);
+    if((o.cns||'').replace(/\D/g,'').length!==15){e.push(`${quem}: Cartão Nacional de Saúde precisa ter 15 números`);bad.push(`${path}.cns`)}
+    req(o,path,'nascimento',`${quem}: data de nascimento`);
+    req(o,path,'sexo',`${quem}: sexo`);req(o,path,'estadoCivil',`${quem}: estado civil`);
+    req(o,path,'nomeMae',`${quem}: nome da mãe`);req(o,path,'nacionalidade',`${quem}: nacionalidade`);
+    if(!tit) req(o,path,'parentesco',`${quem}: parentesco`);
+    const p=+o.peso; if(!(p>=1&&p<=300)){e.push(`${quem}: peso em kg`);bad.push(`${path}.peso`)}
+    const a=parseFloat(String(o.altura).replace(',','.')); if(!(a>=0.3&&a<=2.3)){e.push(`${quem}: altura no formato 1,72`);bad.push(`${path}.altura`)}
+  };
+  if(step===0){
+    const t=S.titular; pessoa(t,'t','Você',true);
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((t.email||'').trim())){e.push('E-mail válido');bad.push('t.email')}
+    const tl=(t.telefone||'').replace(/\D/g,''); if(tl.length<10){e.push('Telefone com DDD');bad.push('t.telefone')}
+    if((t.cep||'').replace(/\D/g,'').length!==8){e.push('CEP com 8 números');bad.push('t.cep')}
+    for(const [k,n] of [['endereco','Endereço'],['numero','Número'],['bairro','Bairro'],['cidade','Cidade'],['admissao','Data de admissão'],['profissao','Profissão']]) req(t,'t',k,n);
+  }
+  if(step===1) S.deps.forEach((d,i)=>pessoa(d,'d'+i,`Dependente ${i+1}`,false));
+  if(step===2){
+    for(const q of D.perguntas) S.resp[q.id].forEach((r,i)=>{ if(r==='S'){const k=`${q.id}|${i}`,x=S.esp[k]||{};
+      if(!(x.texto||'').trim()){e.push(`Item ${q.item}${q.sub} (${pnome(i)}): informe o diagnóstico`);bad.push('e-'+k)}
+      if(!/^(0[1-9]|1[0-2])\/(19|20)\d\d$/.test(x.periodo||'')){e.push(`Item ${q.item}${q.sub} (${pnome(i)}): mês/ano do diagnóstico, ex. 03/2017`);bad.push('p-'+k)} }});
+    if(!S.leu){e.push('Confirme que leu todas as perguntas');bad.push('leu')}
+  }
+  return {e,bad};
+}
+function mostraErros(r){
+  const box=$('#errs');
+  document.querySelectorAll('.bad').forEach(x=>x.classList.remove('bad'));
+  if(!r.e.length){box.hidden=true;return true}
+  box.innerHTML=`<b>Falta corrigir antes de continuar:</b><ul>${r.e.slice(0,12).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${r.e.length>12?`<span>e mais ${r.e.length-12}.</span>`:''}`;
+  box.hidden=false;
+  r.bad.forEach(id=>{const el=document.getElementById(id); if(el) el.classList.add('bad')});
+  window.scrollTo({top:0,behavior:'smooth'});
+  return false;
+}
+
+/* ---------- render e eventos ---------- */
+function render(){
+  $('#view').innerHTML=VIEWS[S.step]();
+  document.querySelectorAll('#steps button').forEach(b=>{const s=+b.dataset.s;
+    b.toggleAttribute('aria-current',false); if(s===S.step) b.setAttribute('aria-current','step');
+    b.classList.toggle('done',s<S.step)});
+  $('#voltar').disabled=S.step===0;
+  $('#avancar').hidden=S.step===3;
+  $('#avancar').textContent=S.step===2?'Revisar e gerar':'Continuar';
+  $('#pos').textContent=`Etapa ${S.step+1} de 4`;
+  salvar();
+}
+function irPara(s){
+  if(s>S.step){ for(let k=S.step;k<s;k++){ const r=validar(k); if(!r.e.length) continue; if(k!==S.step){S.step=k;render()} mostraErros(r); return } }
+  $('#errs').hidden=true; S.step=s; render(); window.scrollTo({top:0});
+}
+$('#avancar').onclick=()=>irPara(S.step+1);
+$('#voltar').onclick=()=>irPara(S.step-1);
+$('#steps').onclick=e=>{const b=e.target.closest('button'); if(b) irPara(+b.dataset.s)};
+
+document.addEventListener('input',e=>{
+  const el=e.target;
+  if(el.dataset.mask){const f=MASK[el.dataset.mask]; const v=f(el.value); if(v!==el.value) el.value=v;}
+  if(el.dataset.p){objDe(el.dataset.p)[el.dataset.k]=el.value; el.classList.remove('bad'); salvar()}
+  if(el.dataset.esp){const k=el.dataset.esp; S.esp[k]=S.esp[k]||{texto:'',periodo:''}; S.esp[k][el.dataset.f]=el.value; el.classList.remove('bad'); salvar()}
+  if(el.id==='leu'){S.leu=el.checked; salvar()}
+});
+document.addEventListener('change',e=>{ if(e.target.id==='leu'){S.leu=e.target.checked;salvar()} if(e.target.tagName==='SELECT'&&e.target.dataset.p){objDe(e.target.dataset.p)[e.target.dataset.k]=e.target.value;salvar()} });
+document.addEventListener('click',e=>{
+  const a=e.target.closest('.ans');
+  if(a){const q=a.dataset.q,i=+a.dataset.i; S.resp[q][i]=S.resp[q][i]==='S'?'N':'S';
+    if(S.resp[q][i]==='N') delete S.esp[`${q}|${i}`];
+    const y=window.scrollY; render(); window.scrollTo({top:y});
+    if(S.resp[q][i]==='S'){const t=document.getElementById(`e-${q}|${i}`); if(t) t.focus({preventScroll:true})}
+    return}
+  if(e.target.id==='adddep'){S.deps.push({...vazioPessoa(),parentesco:''}); ajustaResp(); render(); return}
+  if(e.target.dataset.rm!==undefined){S.deps.splice(+e.target.dataset.rm,1); ajustaResp(); render(); return}
+  const dl=e.target.closest('[data-dl]'); if(dl){baixar(dl.dataset.dl,dl);return}
+  if(e.target.id==='limpar'){try{sessionStorage.removeItem('ficha-unimed')}catch(_){} location.reload()}
+});
+
+/* ---------- geração ---------- */
+let cache=null, arqs=null;
+async function carregaArquivos(){
+  if(arqs) return arqs;
+  const get=async n=>{const r=await fetch(n); if(!r.ok) throw new Error('Não consegui carregar '+n); return new Uint8Array(await r.arrayBuffer())};
+  const [saude,glc,mov,assinatura,carimbo]=await Promise.all(['declaracao_saude.pdf','declaracao_glc.pdf','movimentacao.pdf','assinatura_intermediario.png','carimbo_empresa.png'].map(get));
+  return arqs={saude,glc,mov,assinatura,carimbo,dados:D};
+}
+async function gerar(){
+  if(cache) return cache;
+  const a=await carregaArquivos();
+  const esp=Object.entries(S.esp).map(([k,v])=>({q:k.split('|')[0],prop:+k.split('|')[1],texto:v.texto,periodo:v.periodo}));
+  const r=await M.gerarTodos({data:S.data,titular:S.titular,dependentes:S.deps,respostas:S.resp,especificacoes:esp},a,PDFLib);
+  if(r.sobra.length) throw new Error('As especificações não cabem no quadro da declaração. Encurte os textos das respostas S e tente de novo.');
+  const tudo=await PDFLib.PDFDocument.create();
+  for(const b of [r.saude,r.glc,r.mov]){const d=await PDFLib.PDFDocument.load(b); (await tudo.copyPages(d,d.getPageIndices())).forEach(p=>tudo.addPage(p))}
+  r.tudo=await tudo.save();
+  return cache=r;
+}
+const NOMES={tudo:'Inclusao Unimed',saude:'Declaracao de Saude',glc:'Declaracao MPS GLC',mov:'Movimentacao Cadastral'};
+async function baixar(tipo,btn){
+  const msg=$('#dlmsg'); btn.disabled=true; msg.textContent='Preparando o PDF…';
+  try{
+    const r=await gerar();
+    const nome=`${NOMES[tipo]} - ${M.nomeProprio(S.titular.nome)}.pdf`;
+    const url=URL.createObjectURL(new Blob([r[tipo]],{type:'application/pdf'}));
+    const a=document.createElement('a'); a.href=url; a.download=nome; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+    msg.textContent=`Baixado: ${nome}`;
+  }catch(err){
+    msg.textContent=(err&&err.message)||'Não foi possível gerar o arquivo.';
+  }finally{btn.disabled=false}
+}
+// limpa cache se dados mudarem
+document.addEventListener('input',()=>{cache=null},true);
+document.addEventListener('click',e=>{if(e.target.closest('.ans,[data-rm],#adddep'))cache=null},true);
+
+render();
+</script>
+
+</body>
+</html>
