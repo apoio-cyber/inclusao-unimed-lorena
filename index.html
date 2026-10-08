@@ -431,7 +431,7 @@ function vDados(){
   <section class="card"><h2>Contato e endereço</h2><div class="grid">
   ${campo(t,'t','email','E-mail',{cls:'s3',type:'email',auto:'email',im:'email'})}
   ${campo(t,'t','telefone','Telefone com DDD',{cls:'s3',type:'tel',mask:'tel',im:'tel',auto:'tel',ph:'(12) 99999-9999'})}
-  ${campo(t,'t','cep','CEP',{cls:'s2',im:'numeric',mask:'cep',ph:'00000-000'})}
+  ${campo(t,'t','cep','CEP',{cls:'s2',im:'numeric',mask:'cep',ph:'00000-000',hint:'<span id="cepmsg">Digite o CEP para preencher o endereço</span>'})}
   ${campo(t,'t','endereco','Rua / avenida',{cls:'s4',auto:'address-line1'})}
   ${campo(t,'t','numero','Número',{cls:'s2 half'})}
   ${campo(t,'t','complemento','Complemento',{cls:'s2 half',req:false})}
@@ -624,6 +624,28 @@ document.addEventListener('click',e=>{
   const dl=e.target.closest('[data-dl]'); if(dl){baixar(dl.dataset.dl,dl);return}
   if(e.target.id==='limpar'){try{sessionStorage.removeItem('ficha-unimed')}catch(_){} location.reload()}
 });
+
+/* ---------- CEP automático (ViaCEP) ---------- */
+let cepUltimo='';
+async function buscaCEP(cep){
+  const msg=document.getElementById('cepmsg');
+  if(cep===cepUltimo) return; cepUltimo=cep;
+  if(msg) msg.textContent='Buscando endereço…';
+  try{
+    const r=await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    if(!r.ok) throw 0;
+    const j=await r.json();
+    if(j.erro){ if(msg) msg.textContent='CEP não encontrado. Confira o número ou preencha o endereço à mão.'; return; }
+    const t=S.titular;
+    const set=(k,v)=>{ if(!v) return; t[k]=v; const el=document.getElementById('t.'+k); if(el){el.value=v; el.classList.remove('bad')} };
+    set('endereco',j.logradouro); set('bairro',j.bairro); set('cidade',j.localidade?`${j.localidade}/${j.uf}`:'');
+    if(!t.complemento && j.complemento) set('complemento',j.complemento);
+    salvar(); cache=null;
+    if(msg) msg.textContent=j.logradouro?'Endereço preenchido. Agora informe o número.':'Cidade preenchida. Este CEP é geral: digite a rua e o bairro.';
+    const alvo=document.getElementById(j.logradouro?'t.numero':'t.endereco'); if(alvo&&!alvo.value) alvo.focus();
+  }catch(e){ cepUltimo=''; if(msg) msg.textContent='Não consegui buscar o CEP agora. Preencha o endereço à mão.'; }
+}
+document.addEventListener('input',e=>{ if(e.target.id==='t.cep'){ const d=e.target.value.replace(/\D/g,''); if(d.length===8) buscaCEP(d); else cepUltimo=''; } });
 
 /* ---------- geração ---------- */
 let cache=null, arqs=null;
