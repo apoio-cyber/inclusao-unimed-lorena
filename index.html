@@ -493,11 +493,17 @@ if (typeof module!=="undefined") module.exports=DADOS_UNIMED;
     // ---------- 2. Comunicado da empresa ao ex-empregado ----------
     if (docs.comunicadoEmpresa) {
       const c = await abrir(arq.comunicadoEmpresa);
+      const logo = await c.doc.embedPng(arq.timbrado);
+      const tnr = await c.doc.embedFont(StandardFonts.TimesRoman);
+      const CINZA = rgb(0.25, 0.25, 0.25), LINK = rgb(0.02, 0.27, 0.68);
+      const rod = 'Rua Mateus Grou, 412 – Pinheiros, São Paulo – SP / TEL: (11)2141-5333 / FAX: (11) 3931-0367';
       for (let pi = 0; pi < c.pages.length; pi++) {
-        c.branco(pi, 50, 34, 540, 62);
-        c.txt(pi, 'CUCINARE PRO ALIMENTAÇÃO LTDA', 56.8, 47, 12.5, { bold: true, cor: PRETO });
-        c.txt(pi, 'CNPJ 04.596.502/0001-88  ·  Rua Mateus Grou, 412 - Pinheiros - São Paulo/SP - CEP 05415-040', 56.8, 58.5, 8, { cor: PRETO });
-        c.linha(pi, 56.8, 555.4, 64.5);
+        const pg = c.pages[pi], h = pg.getHeight();
+        c.branco(pi, 50, 30, 560, 64);            // remove "COLOCAR EM PAPEL TIMBRADO DA EMPRESA"
+        c.img(pi, logo, 56.8, 22, 66);              // papel timbrado (cabeçalho)
+        pg.drawText(rod, { x: 56.8, y: h - 758, size: 8, font: tnr, color: CINZA });
+        pg.drawText('WWW.CUCINARE.COM.BR', { x: 56.8, y: h - 768, size: 8, font: tnr, color: LINK });
+        pg.drawLine({ start: { x: 56.8, y: h - 769.2 }, end: { x: 56.8 + tnr.widthOfTextAtSize('WWW.CUCINARE.COM.BR', 8), y: h - 769.2 }, thickness: 0.5, color: LINK });
       }
       const last = c.pages.length - 1;
       c.txt(last, `Lorena, ${+dp.d} de ${MESES[+dp.m - 1]} de ${dp.a}`, 555.4, 228, 11, { right: true });
@@ -1082,9 +1088,9 @@ async function gerarX() {
   if (cacheX) return cacheX;
   if (!arqsX) {
     const get = async n => { const r = await fetch(n); if (!r.ok) throw new Error('Não consegui carregar ' + n); return new Uint8Array(await r.arrayBuffer()); };
-    const nomes = ['exclusao/1_solicitacao.pdf', 'exclusao/2_comunicado_empresa.pdf', 'exclusao/3_opcao_manutencao.pdf', 'exclusao/4_movimentacao.pdf', 'exclusao/5_extincao_vinculo.pdf', 'carimbo_empresa.png'];
-    const [solicitacao, comunicadoEmpresa, opcaoManutencao, movimentacao, extincao, carimbo] = await Promise.all(nomes.map(get));
-    arqsX = { solicitacao, comunicadoEmpresa, opcaoManutencao, movimentacao, extincao, carimbo };
+    const nomes = ['exclusao/1_solicitacao.pdf', 'exclusao/2_comunicado_empresa.pdf', 'exclusao/3_opcao_manutencao.pdf', 'exclusao/4_movimentacao.pdf', 'exclusao/5_extincao_vinculo.pdf', 'carimbo_empresa.png', 'timbrado_cucinare.png'];
+    const [solicitacao, comunicadoEmpresa, opcaoManutencao, movimentacao, extincao, carimbo, timbrado] = await Promise.all(nomes.map(get));
+    arqsX = { solicitacao, comunicadoEmpresa, opcaoManutencao, movimentacao, extincao, carimbo, timbrado };
   }
   const dados = { ...X, contribuiu: X.contribuiu === 'sim' ? true : X.contribuiu === 'nao' ? false : null, dependentes: X.deps };
   const r = await MX.gerar(dados, arqsX, PDFLib);
