@@ -616,7 +616,8 @@ const MASK={
   mesano:v=>{v=v.replace(/\D/g,'').slice(0,6);return v.length>2?v.slice(0,2)+'/'+v.slice(2):v},
   altura:v=>{v=v.replace(/[^\d,.]/g,'').replace('.',',');const d=v.replace(/\D/g,'');if(/^\d{3}$/.test(d)&&!v.includes(','))return d[0]+','+d.slice(1);return v.slice(0,4)},
   peso:v=>v.replace(/\D/g,'').slice(0,3),
-  valor:v=>v.replace(/[^\d,.]/g,'').slice(0,12)
+  valor:v=>v.replace(/[^\d,.]/g,'').slice(0,12),
+  cart:v=>{const d=v.replace(/\D/g,'').slice(0,17);const p=[d.slice(0,4),d.slice(4,8),d.slice(8,14),d.slice(14,16),d.slice(16,17)];let o=p[0];if(d.length>4)o+='.'+p[1];if(d.length>8)o+='.'+p[2];if(d.length>14)o+='-'+p[3];if(d.length>16)o+='-'+p[4];return o}
 };
 
 function pessoaCampos(o,path,tit){
@@ -935,7 +936,7 @@ function vxTitular() {
   let h = `<section class="card"><h2>Ex-empregado (titular)</h2><div class="grid">
     ${campo(t, 'xt', 'nome', 'Nome completo, sem abreviar', { cls: 's6' })}
     ${campo(t, 'xt', 'cpf', 'CPF', { cls: 's2', im: 'numeric', mask: 'cpf', ph: '000.000.000-00' })}
-    ${campo(t, 'xt', 'codigo', 'Código do beneficiário', { cls: 's2', hint: 'Número da carteirinha Unimed' })}
+    ${campo(t, 'xt', 'codigo', 'Código do beneficiário', { cls: 's2', im: 'numeric', mask: 'cart', ph: '0090.2195.000002-00-0', hint: 'Número da carteirinha Unimed (17 números)' })}
     ${campo(t, 'xt', 'valor', 'Valor da mensalidade (R$)', { cls: 's2', im: 'decimal', mask: 'valor', ph: '0,00' })}
     ${campo(X, 'x', 'dataDemissao', 'Data da demissão', { cls: 's3', type: 'date' })}
   </div></section>`;
@@ -961,7 +962,7 @@ function vxDeps() {
     h += `<section class="card"><div class="dephead"><span class="tag">Dependente ${i + 1}</span><button type="button" class="btn ghost" data-xrm="${i}">Remover</button></div><div class="grid">
       ${campo(d, 'xd' + i, 'nome', 'Nome completo', { cls: 's6' })}
       ${campo(d, 'xd' + i, 'cpf', 'CPF', { cls: 's2', im: 'numeric', mask: 'cpf', req: false, ph: '000.000.000-00' })}
-      ${campo(d, 'xd' + i, 'codigo', 'Código do beneficiário', { cls: 's2' })}
+      ${campo(d, 'xd' + i, 'codigo', 'Código do beneficiário', { cls: 's2', im: 'numeric', mask: 'cart', ph: '0090.2195.000003-00-6', hint: 'Carteirinha (17 números)' })}
       ${campo(d, 'xd' + i, 'parentesco', 'Parentesco', { cls: 's2', opts: PARENT })}
       ${campo(d, 'xd' + i, 'valor', 'Valor da mensalidade (R$)', { cls: 's2', im: 'decimal', mask: 'valor', ph: '0,00' })}
     </div></section>`;
@@ -1028,7 +1029,7 @@ function validarX(step) {
     const t = X.titular;
     req(t, 'xt', 'nome', 'Nome do ex-empregado');
     if (!cpfOk(t.cpf)) { e.push('CPF do ex-empregado inválido'); bad.push('xt.cpf'); }
-    req(t, 'xt', 'codigo', 'Código do beneficiário do titular');
+    if (String(t.codigo || '').replace(/\D/g, '').length !== 17) { e.push('Código do beneficiário do titular: 17 números, como 0090.2195.000002-00-0'); bad.push('xt.codigo'); }
     if (!valorOk(t.valor)) { e.push('Valor da mensalidade do titular'); bad.push('xt.valor'); }
     req(X, 'x', 'dataDemissao', 'Data da demissão');
     if (!X.motivo) { e.push('Motivo da exclusão'); bad.push('r-motivo'); }
@@ -1044,7 +1045,7 @@ function validarX(step) {
     const q = `Dependente ${i + 1}`;
     req(d, 'xd' + i, 'nome', `${q}: nome`);
     if (d.cpf && !cpfOk(d.cpf)) { e.push(`${q}: CPF inválido`); bad.push(`xd${i}.cpf`); }
-    req(d, 'xd' + i, 'codigo', `${q}: código do beneficiário`);
+    if (String(d.codigo || '').replace(/\D/g, '').length !== 17) { e.push(`${q}: código do beneficiário com 17 números`); bad.push(`xd${i}.codigo`); }
     if (!PARENT.includes(d.parentesco)) { e.push(`${q}: parentesco`); bad.push(`xd${i}.parentesco`); }
     if (!valorOk(d.valor)) { e.push(`${q}: valor da mensalidade`); bad.push(`xd${i}.valor`); }
   });
