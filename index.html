@@ -120,6 +120,12 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .pill.on{background:var(--ok-soft);color:var(--ok)}
 .pill.no{background:var(--line);color:var(--muted)}
 @media (prefers-reduced-motion:no-preference){.ans,.btn{transition:background .12s,border-color .12s}}
+.rodape{margin-top:48px;padding:18px 0 8px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);text-align:center}
+.rodape .rod-logo{display:inline-flex;background:#fff;border-radius:8px;padding:4px 8px;line-height:0}
+.rodape .rod-logo img{height:30px;width:auto}
+.rodape .rod-wa{color:var(--ok);font-weight:600;text-decoration:none;white-space:nowrap}
+.rodape .rod-wa:hover{text-decoration:underline}
+@media print{.rodape{display:none}}
 </style>
 </head>
 <body>
@@ -136,6 +142,10 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 
   <div id="errs" class="errs" hidden></div>
   <main id="view"></main>
+  <footer class="rodape">
+    <span class="rod-logo"><img src="logo_diviplan.png" alt="Diviplan" width="105" height="37"></span>
+    <span>Desenvolvido pela <b>Diviplan</b> · Dúvidas? <a href="https://wa.me/5511993576060?text=Ol%C3%A1%2C%20tenho%20uma%20d%C3%BAvida%20sobre%20os%20formul%C3%A1rios%20da%20Unimed%20Lorena" target="_blank" rel="noopener" class="rod-wa">WhatsApp (11) 99357-6060</a></span>
+  </footer>
 </div>
 
 <div class="navbar" id="navbar"><div class="in">
