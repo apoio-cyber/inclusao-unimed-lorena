@@ -1126,5 +1126,30 @@ async function baixarX(tipo, btn) {
 render();
 </script>
 
+<script>
+/* Aviso de inclusão fora do prazo de 30 dias da admissão (carência) */
+(function(){
+  var PRAZO=30, CSS='margin-top:6px;background:#fbe9ea;color:#a4262c;border:1px solid #f0b8bb;border-radius:8px;padding:7px 10px;font-size:13px;font-weight:700;line-height:1.35';
+  function lerData(v){v=String(v||'').trim(); var m=v.match(/^(\d{4})-(\d{2})-(\d{2})$/); if(m) return new Date(+m[1],m[2]-1,+m[3]);
+    m=v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/); if(m) return new Date(+m[3],m[2]-1,+m[1]); return null;}
+  function checar(inp, ref){
+    var box=inp.closest('.f')||inp.parentNode, av=box.querySelector('.aviso-prazo');
+    var a=lerData(inp.value), r=ref?lerData(ref())||new Date():new Date(); r.setHours(0,0,0,0);
+    var dias=a?Math.round((r-a)/864e5):null;
+    if(dias!==null && dias>PRAZO){
+      if(!av){av=document.createElement('div'); av.className='aviso-prazo'; av.setAttribute('role','alert'); av.style.cssText=CSS; box.appendChild(av);}
+      av.textContent='Fora do prazo: admissão há '+dias+' dias (prazo de '+PRAZO+' dias). Plano incluso fora da vigência contratual: haverá cumprimento de carências.';
+    } else if(av) av.remove();
+  }
+  window.__avisoPrazo=function(sel, ref){
+    function run(){var i=document.querySelector(sel); if(i) checar(i,ref);}
+    document.addEventListener('input',function(e){if(e.target.matches&&e.target.matches(sel)) checar(e.target,ref);});
+    document.addEventListener('change',function(e){if(e.target.matches&&e.target.matches(sel)) checar(e.target,ref);});
+    new MutationObserver(function(){var i=document.querySelector(sel); if(i&&!i.closest('.f,div').querySelector('.aviso-prazo')) checar(i,ref);}).observe(document.body,{childList:true,subtree:true});
+    run();
+  };
+})();
+</script>
+<script>__avisoPrazo('[id="t.admissao"]', function(){return (typeof S!=='undefined'&&S.data)||'';});</script>
 </body>
 </html>
