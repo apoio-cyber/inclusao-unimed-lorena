@@ -653,6 +653,7 @@ function pessoaCampos(o,path,tit){
   h+=campo(o,path,'nomeMae','Nome completo da mãe',{cls:tit?'s6':'s4'});
   if(!tit) h+=campo(o,path,'nacionalidade','Nacionalidade',{cls:'s2'});
   if(!tit) h+=campo(o,path,'parentesco','Parentesco com você',{cls:'s2',opts:PARENT});
+  if(!tit) h+=campo(o,path,'casamento','Data do casamento ou início da união',{cls:'s2 uniao',type:'date',max:hoje,req:false});
   h+=campo(o,path,'peso','Peso (kg)',{cls:'s2 half',im:'numeric',mask:'peso',ph:'75',hint:'Sem casas decimais'});
   h+=campo(o,path,'altura','Altura (m)',{cls:'s2 half',im:'decimal',mask:'altura',ph:'1,72'});
   return h+'</div>';
@@ -1151,5 +1152,37 @@ render();
 })();
 </script>
 <script>__avisoPrazo('[id="t.admissao"]', function(){return (typeof S!=='undefined'&&S.data)||'';});</script>
+<script>
+/* Aviso: data do casamento/união com mais de 30 dias (inclusão de cônjuge com titular já ativo) */
+(function(){
+  var CSS='margin-top:6px;background:#fbe9ea;color:#a4262c;border:1px solid #f0b8bb;border-radius:8px;padding:7px 10px;font-size:13px;font-weight:700;line-height:1.35';
+  function lerData(v){v=String(v||'').trim(); var m=v.match(/^(\d{4})-(\d{2})-(\d{2})$/); if(m) return new Date(+m[1],m[2]-1,+m[3]);
+    m=v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/); if(m) return new Date(+m[3],m[2]-1,+m[1]); return null;}
+  function checar(inp){
+    var box=inp.closest('.f')||inp.parentNode, av=box.querySelector('.aviso-uniao');
+    var a=lerData(inp.value), r=new Date(); r.setHours(0,0,0,0);
+    var dias=a?Math.round((r-a)/864e5):null;
+    if(dias!==null && dias>30){
+      if(!av){av=document.createElement('div'); av.className='aviso-uniao'; av.setAttribute('role','alert'); av.style.cssText=CSS; box.appendChild(av);}
+      av.textContent='Casamento/união há '+dias+' dias. Se o titular já estiver ativo no plano, a inclusão do cônjuge passou do prazo de 30 dias: haverá cumprimento de carências.';
+    } else if(av) av.remove();
+  }
+  window.__avisoUniao=function(sel){
+    ['input','change'].forEach(function(ev){document.addEventListener(ev,function(e){if(e.target.matches&&e.target.matches(sel)) checar(e.target);});});
+    new MutationObserver(function(){document.querySelectorAll(sel).forEach(function(i){var b=i.closest('.f'); if(i.value&&b&&!b.querySelector('.aviso-uniao')) checar(i);});}).observe(document.body,{childList:true,subtree:true});
+  };
+})();
+</script>
+<script>
+__avisoUniao('input[data-k="casamento"]');
+/* mostra a data do casamento só para cônjuge/companheiro(a) */
+(function(){
+  function ajusta(){document.querySelectorAll('input[data-k="casamento"]').forEach(function(i){
+    var p=document.getElementById(i.dataset.p+'.parentesco'), f=i.closest('.f');
+    var conj=p&&/^(Cônjuge|Companheiro)/.test(p.value); if(f) f.hidden=!conj;});}
+  document.addEventListener('change',function(e){if(e.target.dataset&&e.target.dataset.k==='parentesco') ajusta();});
+  new MutationObserver(ajusta).observe(document.body,{childList:true,subtree:true}); ajusta();
+})();
+</script>
 </body>
 </html>
